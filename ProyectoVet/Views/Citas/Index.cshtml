@@ -1,0 +1,43 @@
+@model IEnumerable<ProyectoVet.Models.Cita>
+
+@{
+    ViewData["Title"] = "Listado de Citas";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Crear nueva</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Mascota</th>
+            <th>Empleado</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Motivo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.IdMascotaNavigation?.NombreMascota</td>
+            <td>@item.IdEmpleadoNavigation?.Nombre</td>
+            <td>@item.FechaHoraInicio.ToString("g")</td>
+            <td>@item.FechaHoraFin.ToString("g")</td>
+            <td>@item.EstadoCita</td>
+            <td>@item.Motivo</td>
+            <td>
+                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdCita">Detalles</a>
+                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.IdCita">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdCita">Borrar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

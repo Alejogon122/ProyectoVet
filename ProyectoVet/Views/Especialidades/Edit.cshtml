@@ -1,0 +1,29 @@
+@model ProyectoVet.Models.Especialidade
+
+@{
+    ViewData["Title"] = "Editar Especialidad";
+}
+
+<h1>Editar Especialidad</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="IdEspecialidad" />
+    <div class="form-group">
+        <label asp-for="NombreEspecialidad" class="control-label"></label>
+        <input asp-for="NombreEspecialidad" class="form-control" />
+        <span asp-validation-for="NombreEspecialidad" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Descripcion" class="control-label"></label>
+        <textarea asp-for="Descripcion" class="form-control"></textarea>
+        <span asp-validation-for="Descripcion" class="text-danger"></span>
+    </div>
+    <div class="form-group mt-2">
+        <input type="submit" value="Guardar" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

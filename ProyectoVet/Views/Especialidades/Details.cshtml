@@ -1,0 +1,30 @@
+@model ProyectoVet.Models.Especialidade
+
+@{
+    ViewData["Title"] = "Detalles Especialidad";
+}
+
+<h1>Detalles</h1>
+
+<div>
+    <h4>Especialidad</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Nombre
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.NombreEspecialidad
+        </dd>
+        <dt class = "col-sm-2">
+            Descripción
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.Descripcion
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.IdEspecialidad" class="btn btn-secondary">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>

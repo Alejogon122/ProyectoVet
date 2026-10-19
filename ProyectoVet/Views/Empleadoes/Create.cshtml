@@ -1,0 +1,48 @@
+@model ProyectoVet.Models.Empleado
+
+@{
+    ViewData["Title"] = "Crear Empleado";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Nombre"></label>
+        <input asp-for="Nombre" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Apellidos"></label>
+        <input asp-for="Apellidos" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="NumeroCedula"></label>
+        <input asp-for="NumeroCedula" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Telefono"></label>
+        <input asp-for="Telefono" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="CorreoElectronico"></label>
+        <input asp-for="CorreoElectronico" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Contrasena"></label>
+        <input asp-for="Contrasena" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="IdRol">Rol</label>
+        <select asp-for="IdRol" class="form-control" asp-items="@(ViewData["IdRol"] as SelectList)"></select>
+    </div>
+    <div class="form-group form-check">
+        <input asp-for="Activo" class="form-check-input" />
+        <label asp-for="Activo" class="form-check-label"></label>
+    </div>
+    <div class="form-group">
+        <label asp-for="FechaContratacion"></label>
+        <input asp-for="FechaContratacion" class="form-control" type="date" />
+    </div>
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

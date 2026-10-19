@@ -1,0 +1,41 @@
+@model IEnumerable<ProyectoVet.Models.ExpedientesClinico>
+
+@{
+    ViewData["Title"] = "Expedientes Clínicos";
+}
+
+<h1>Expedientes Clínicos</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Crear nuevo</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Mascota</th>
+            <th>Fecha apertura</th>
+            <th>Alergias</th>
+            <th>Antecedentes</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.IdExpediente</td>
+            <td>@item.IdMascotaNavigation?.NombreMascota</td>
+            <td>@item.FechaApertura</td>
+            <td>@item.Alergias</td>
+            <td>@item.Antecedentes</td>
+            <td>
+                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdExpediente">Detalles</a>
+                <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@item.IdExpediente">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdExpediente">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

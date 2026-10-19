@@ -1,0 +1,33 @@
+@model ProyectoVet.Models.ExpedientesClinico
+
+@{
+    ViewData["Title"] = "Detalles expediente";
+}
+
+<h1>Detalles expediente</h1>
+
+<div>
+    <h4>Expediente</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Id</dt>
+        <dd class="col-sm-10">@Model.IdExpediente</dd>
+
+        <dt class="col-sm-2">Mascota</dt>
+        <dd class="col-sm-10">@Model.IdMascotaNavigation?.NombreMascota</dd>
+
+        <dt class="col-sm-2">Fecha apertura</dt>
+        <dd class="col-sm-10">@Model.FechaApertura</dd>
+
+        <dt class="col-sm-2">Alergias</dt>
+        <dd class="col-sm-10">@Model.Alergias</dd>
+
+        <dt class="col-sm-2">Antecedentes</dt>
+        <dd class="col-sm-10">@Model.Antecedentes</dd>
+
+        <dt class="col-sm-2">Observaciones generales</dt>
+        <dd class="col-sm-10">@Model.ObservacionesGenerales</dd>
+    </dl>
+</div>
+
+<a class="btn btn-secondary" asp-action="Index">Volver</a>

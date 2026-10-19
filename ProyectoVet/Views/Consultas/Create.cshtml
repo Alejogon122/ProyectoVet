@@ -1,0 +1,56 @@
+@model ProyectoVet.Models.Consulta
+
+@{
+    ViewData["Title"] = "Crear Consulta";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="FechaConsulta"></label>
+        <input asp-for="FechaConsulta" class="form-control" type="datetime-local" />
+    </div>
+    <div class="form-group">
+        <label asp-for="MotivoConsulta"></label>
+        <input asp-for="MotivoConsulta" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Sintomas"></label>
+        <textarea asp-for="Sintomas" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="Diagnostico"></label>
+        <textarea asp-for="Diagnostico" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="TratamientoIndicado"></label>
+        <textarea asp-for="TratamientoIndicado" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="PesoKg"></label>
+        <input asp-for="PesoKg" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="TemperaturaC"></label>
+        <input asp-for="TemperaturaC" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Observaciones"></label>
+        <textarea asp-for="Observaciones" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdExpediente">Expediente</label>
+        <select asp-for="IdExpediente" asp-items="@((SelectList)ViewData["IdExpediente"])" class="form-control"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdCita">Cita (opcional)</label>
+        <select asp-for="IdCita" asp-items="@((SelectList)ViewData["IdCita"])" class="form-control"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdVeterinario">Veterinario</label>
+        <select asp-for="IdVeterinario" asp-items="@((SelectList)ViewData["IdVeterinario"])" class="form-control"></select>
+    </div>
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

@@ -1,0 +1,45 @@
+@model IEnumerable<ProyectoVet.Models.Mascota>
+
+@{
+    ViewData["Title"] = "Listado de Mascotas";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Crear nueva</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Clase</th>
+            <th>Raza</th>
+            <th>Sexo</th>
+            <th>Fecha Nac.</th>
+            <th>Dueño</th>
+            <th>Activa</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.NombreMascota</td>
+            <td>@item.ClaseAnimal @item.OtraClaseAnimal</td>
+            <td>@item.Raza</td>
+            <td>@item.Sexo</td>
+            <td>@(item.FechaNacimiento.HasValue ? item.FechaNacimiento.Value.ToString("yyyy-MM-dd") : "")</td>
+            <td>@item.IdDuenoNavigation?.Nombre @item.IdDuenoNavigation?.Apellidos</td>
+            <td>@(item.Activa ? "Sí" : "No")</td>
+            <td>
+                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdMascota">Detalles</a>
+                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.IdMascota">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdMascota">Borrar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

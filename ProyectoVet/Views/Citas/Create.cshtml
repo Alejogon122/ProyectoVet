@@ -1,0 +1,44 @@
+@model ProyectoVet.Models.Cita
+
+@{
+    ViewData["Title"] = "Crear Cita";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="FechaHoraInicio"></label>
+        <input asp-for="FechaHoraInicio" class="form-control" type="datetime-local" />
+    </div>
+    <div class="form-group">
+        <label asp-for="FechaHoraFin"></label>
+        <input asp-for="FechaHoraFin" class="form-control" type="datetime-local" />
+    </div>
+    <div class="form-group">
+        <label asp-for="EstadoCita"></label>
+        <input asp-for="EstadoCita" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Motivo"></label>
+        <input asp-for="Motivo" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Observaciones"></label>
+        <textarea asp-for="Observaciones" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdMascota">Mascota</label>
+        <select asp-for="IdMascota" asp-items="@((SelectList)ViewData["IdMascota"])" class="form-control"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="IdEmpleado">Empleado</label>
+        <select asp-for="IdEmpleado" asp-items="@((SelectList)ViewData["IdEmpleado"])" class="form-control"></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="CreadaPorEmpleadoId">Creada por (opcional)</label>
+        <select asp-for="CreadaPorEmpleadoId" asp-items="@((SelectList)ViewData["CreadaPorEmpleadoId"])" class="form-control"></select>
+    </div>
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

@@ -1,0 +1,35 @@
+@model IEnumerable<ProyectoVet.Models.Especialidade>
+
+@{
+    ViewData["Title"] = "Especialidades";
+}
+
+<h1>Especialidades</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Crear nuevo</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.NombreEspecialidad</td>
+            <td>@item.Descripcion</td>
+            <td>
+                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdEspecialidad">Detalles</a>
+                <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@item.IdEspecialidad">Editar</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdEspecialidad">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
