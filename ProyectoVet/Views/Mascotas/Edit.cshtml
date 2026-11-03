@@ -4,54 +4,134 @@
     ViewData["Title"] = "Editar Mascota";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card glass-card border-0 shadow-sm rounded-4">
+            <div class="card-header border-0 py-3">
+                <h4 class="card-title fw-bold text-dark mb-0">
+                    <i class="bi bi-pencil-square text-warning me-2"></i> Editar Datos de: @Model.NombreMascota
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="IdMascota" />
+                    <div asp-validation-summary="All" class="alert alert-danger py-2 px-3 mb-3 small" role="alert" style="@(ViewData.ModelState.IsValid ? "display:none;" : "")"></div>
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="IdMascota" />
-    <div class="form-group">
-        <label asp-for="NombreMascota"></label>
-        <input asp-for="NombreMascota" class="form-control" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="NombreMascota" class="form-label fw-semibold">Nombre de la Mascota *</label>
+                            <input asp-for="NombreMascota" class="form-control" required />
+                            <span asp-validation-for="NombreMascota" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IdDueno" class="form-label fw-semibold">Dueño Responsable *</label>
+                            <select asp-for="IdDueno" asp-items="ViewBag.IdDueno" class="form-select" required></select>
+                            <span asp-validation-for="IdDueno" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ClaseAnimal" class="form-label fw-semibold">Especie / Clase *</label>
+                            <select asp-for="ClaseAnimal" id="claseAnimalSelect" class="form-select" required>
+                                <option value="Perro">Perro (Canino)</option>
+                                <option value="Gato">Gato (Felino)</option>
+                                <option value="Otra">Otra especie</option>
+                            </select>
+                            <span asp-validation-for="ClaseAnimal" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4" id="otraClaseContainer">
+                            <label asp-for="OtraClaseAnimal" class="form-label fw-semibold">
+                                Otra Especie <span id="otraClaseReq" class="text-danger" style="display:none;">*</span>
+                            </label>
+                            <input asp-for="OtraClaseAnimal" id="otraClaseInput" class="form-control" placeholder="Especifique si eligió 'Otra'" />
+                            <span asp-validation-for="OtraClaseAnimal" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Raza" class="form-label fw-semibold">Raza</label>
+                            <input asp-for="Raza" class="form-control" />
+                            <span asp-validation-for="Raza" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Sexo" class="form-label fw-semibold">Sexo</label>
+                            <select asp-for="Sexo" class="form-select">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Macho">Macho</option>
+                                <option value="Hembra">Hembra</option>
+                                <option value="Desconocido">Desconocido</option>
+                            </select>
+                            <span asp-validation-for="Sexo" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="FechaNacimiento" class="form-label fw-semibold">Fecha de Nacimiento</label>
+                            <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                            <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Color" class="form-label fw-semibold">Color / Pelaje</label>
+                            <input asp-for="Color" class="form-control" />
+                            <span asp-validation-for="Color" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NumeroMicrochip" class="form-label fw-semibold">Número de Microchip</label>
+                            <input asp-for="NumeroMicrochip" class="form-control" placeholder="Código identificador (opcional)" />
+                            <span asp-validation-for="NumeroMicrochip" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center mt-4">
+                            <div class="form-check form-switch fs-5">
+                                <input asp-for="Activa" class="form-check-input" />
+                                <label asp-for="Activa" class="form-check-label fs-6 fw-semibold ms-2">Paciente Activo</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones / Señas Particulares</label>
+                            <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="ClaseAnimal"></label>
-        <input asp-for="ClaseAnimal" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="OtraClaseAnimal"></label>
-        <input asp-for="OtraClaseAnimal" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Raza"></label>
-        <input asp-for="Raza" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Sexo"></label>
-        <input asp-for="Sexo" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="FechaNacimiento"></label>
-        <input asp-for="FechaNacimiento" class="form-control" type="date" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Color"></label>
-        <input asp-for="Color" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="NumeroMicrochip"></label>
-        <input asp-for="NumeroMicrochip" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="IdDueno">Dueño</label>
-        <select asp-for="IdDueno" asp-items="@((SelectList)ViewData["IdDueno"])" class="form-control"></select>
-    </div>
-    <div class="form-group form-check">
-        <input asp-for="Activa" class="form-check-input" />
-        <label asp-for="Activa" class="form-check-label"></label>
-    </div>
-    <div class="form-group">
-        <label asp-for="Observaciones"></label>
-        <textarea asp-for="Observaciones" class="form-control"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
-</form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function syncClaseAnimal() {
+            var select = document.getElementById('claseAnimalSelect');
+            var input = document.getElementById('otraClaseInput');
+            var req = document.getElementById('otraClaseReq');
+            if (!select || !input) return;
+
+            if (select.value === 'Otra') {
+                input.disabled = false;
+                input.required = true;
+                if (req) req.style.display = 'inline';
+            } else {
+                input.value = '';
+                input.disabled = true;
+                input.required = false;
+                if (req) req.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', syncClaseAnimal);
+        document.getElementById('claseAnimalSelect')?.addEventListener('change', syncClaseAnimal);
+    </script>
+}

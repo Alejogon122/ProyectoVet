@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,10 @@ namespace ProyectoVet.Controllers
         // GET: ExpedientesClinicoes
         public async Task<IActionResult> Index()
         {
-            var expedientes = _context.ExpedientesClinicos.Include(e => e.IdMascotaNavigation);
+            var expedientes = _context.ExpedientesClinicos
+                .Include(e => e.IdMascotaNavigation!)
+                    .ThenInclude(m => m.IdDuenoNavigation)
+                .OrderByDescending(e => e.FechaApertura);
             return View(await expedientes.ToListAsync());
         }
 
@@ -30,7 +34,10 @@ namespace ProyectoVet.Controllers
             if (id == null) return NotFound();
 
             var expediente = await _context.ExpedientesClinicos
-                .Include(e => e.IdMascotaNavigation)
+                .Include(e => e.IdMascotaNavigation!)
+                    .ThenInclude(m => m.IdDuenoNavigation)
+                .Include(e => e.Consulta)
+                    .ThenInclude(c => c.IdVeterinarioNavigation)
                 .FirstOrDefaultAsync(m => m.IdExpediente == id);
             if (expediente == null) return NotFound();
 
@@ -40,8 +47,12 @@ namespace ProyectoVet.Controllers
         // GET: ExpedientesClinicoes/Create
         public IActionResult Create()
         {
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota");
-            return View();
+            CargarMascotasDropDown();
+            var expediente = new ExpedientesClinico
+            {
+                FechaApertura = DateTime.Now
+            };
+            return View(expediente);
         }
 
         // POST: ExpedientesClinicoes/Create
@@ -49,13 +60,17 @@ namespace ProyectoVet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdMascota,FechaApertura,Alergias,Antecedentes,ObservacionesGenerales")] ExpedientesClinico expedientesClinico)
         {
+            await NormalizarYValidarExpedienteAsync(expedientesClinico);
+
             if (ModelState.IsValid)
             {
                 _context.Add(expedientesClinico);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "¡El expediente clínico ha sido creado exitosamente!";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", expedientesClinico.IdMascota);
+
+            CargarMascotasDropDown(expedientesClinico.IdMascota);
             return View(expedientesClinico);
         }
 
@@ -66,7 +81,8 @@ namespace ProyectoVet.Controllers
 
             var expediente = await _context.ExpedientesClinicos.FindAsync(id);
             if (expediente == null) return NotFound();
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", expediente.IdMascota);
+
+            CargarMascotasDropDown(expediente.IdMascota, expediente.IdMascota);
             return View(expediente);
         }
 
@@ -77,12 +93,15 @@ namespace ProyectoVet.Controllers
         {
             if (id != expedientesClinico.IdExpediente) return NotFound();
 
+            await NormalizarYValidarExpedienteAsync(expedientesClinico);
+
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(expedientesClinico);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "¡El expediente clínico ha sido actualizado exitosamente!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -91,8 +110,87 @@ namespace ProyectoVet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", expedientesClinico.IdMascota);
+
+            CargarMascotasDropDown(expedientesClinico.IdMascota, expedientesClinico.IdMascota);
             return View(expedientesClinico);
+        }
+
+        private async Task NormalizarYValidarExpedienteAsync(ExpedientesClinico expediente)
+        {
+            expediente.Alergias = string.IsNullOrWhiteSpace(expediente.Alergias) ? null : expediente.Alergias.Trim();
+            expediente.Antecedentes = string.IsNullOrWhiteSpace(expediente.Antecedentes) ? null : expediente.Antecedentes.Trim();
+            expediente.ObservacionesGenerales = string.IsNullOrWhiteSpace(expediente.ObservacionesGenerales) ? null : expediente.ObservacionesGenerales.Trim();
+
+            if (expediente.FechaApertura == default)
+            {
+                expediente.FechaApertura = DateTime.Now;
+            }
+
+            if (expediente.FechaApertura > DateTime.Now.AddDays(1))
+            {
+                ModelState.AddModelError(nameof(ExpedientesClinico.FechaApertura), "La fecha de apertura no puede ser una fecha futura.");
+            }
+
+            if (expediente.IdMascota <= 0)
+            {
+                ModelState.AddModelError(nameof(ExpedientesClinico.IdMascota), "Debe seleccionar una mascota válida.");
+            }
+            else
+            {
+                var mascotaExiste = await _context.Mascotas.AnyAsync(m => m.IdMascota == expediente.IdMascota);
+                if (!mascotaExiste)
+                {
+                    ModelState.AddModelError(nameof(ExpedientesClinico.IdMascota), "La mascota seleccionada no existe en el sistema.");
+                }
+                else
+                {
+                    // Validar restricción UNIQUE (UQ_Expedientes_Mascota):
+                    // Una mascota solo puede tener UN expediente clínico
+                    var yaTieneExpediente = await _context.ExpedientesClinicos.AnyAsync(e =>
+                        e.IdExpediente != expediente.IdExpediente &&
+                        e.IdMascota == expediente.IdMascota);
+
+                    if (yaTieneExpediente)
+                    {
+                        ModelState.AddModelError(nameof(ExpedientesClinico.IdMascota), "La mascota seleccionada ya cuenta con un expediente clínico registrado.");
+                    }
+                }
+            }
+
+            // Remover referencias de navegación para evitar falsos positivos
+            ModelState.Remove(nameof(ExpedientesClinico.IdMascotaNavigation));
+            ModelState.Remove(nameof(ExpedientesClinico.Consulta));
+            ModelState.Remove("IdMascotaNavigation");
+            ModelState.Remove("Consulta");
+        }
+
+        private void CargarMascotasDropDown(object? selectedId = null, int? mascotaActualId = null)
+        {
+            var query = _context.Mascotas
+                .Include(m => m.IdDuenoNavigation)
+                .Where(m => m.Activa);
+
+            if (mascotaActualId.HasValue)
+            {
+                query = query.Where(m => m.IdMascota == mascotaActualId.Value ||
+                                         !_context.ExpedientesClinicos.Any(e => e.IdMascota == m.IdMascota));
+            }
+            else
+            {
+                query = query.Where(m => !_context.ExpedientesClinicos.Any(e => e.IdMascota == m.IdMascota));
+            }
+
+            var mascotas = query
+                .OrderBy(m => m.NombreMascota)
+                .Select(m => new
+                {
+                    m.IdMascota,
+                    Descripcion = m.NombreMascota + " - " + m.ClaseAnimal + " (Dueño: " + (m.IdDuenoNavigation != null ? m.IdDuenoNavigation.Nombre + " " + m.IdDuenoNavigation.Apellidos : "Sin dueño") + ")"
+                })
+                .ToList();
+
+            ViewBag.IdMascota = new SelectList(mascotas, "IdMascota", "Descripcion", selectedId);
+            ViewBag.NoHayMascotasDisponibles = !mascotas.Any();
         }
 
         // GET: ExpedientesClinicoes/Delete/5

@@ -1,8 +1,248 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model ProyectoVet.Models.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Panel Principal";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="h2 fw-bold text-dark mb-1 d-flex align-items-center">
+            <span class="rounded-3 bg-primary bg-opacity-10 p-2 me-2 d-inline-flex align-items-center justify-content-center text-primary" style="border: 1px solid rgba(13, 110, 253, 0.2);">
+                <i class="bi bi-speedometer2 fs-4"></i>
+            </span>
+            Panel de Control
+        </h1>
+        <p class="text-muted mb-0">Bienvenido al sistema de gestión clínica veterinaria <strong>ProyectoVet</strong>.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="badge bg-white bg-opacity-80 text-dark border p-2 shadow-sm" style="backdrop-filter: blur(8px);">
+            <i class="bi bi-calendar3 me-1 text-primary"></i> @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")
+        </span>
+    </div>
+</div>
+
+<!-- Tarjetas de Estadísticas (KPIs Glass) -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card h-100 p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-4 bg-primary bg-opacity-15 p-3 me-3 text-primary fs-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 58px; height: 58px; border: 1px solid rgba(13, 110, 253, 0.25);">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wide">Citas para Hoy</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">@Model.TotalCitasHoy</h3>
+                </div>
+            </div>
+            <div class="pt-2 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <a asp-controller="Citas" asp-action="Index" class="text-primary text-decoration-none small fw-semibold">
+                    Ver agenda <i class="bi bi-arrow-right"></i>
+                </a>
+                <span class="badge bg-primary bg-opacity-10 text-primary small">Hoy</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card h-100 p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-4 bg-success bg-opacity-15 p-3 me-3 text-success fs-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 58px; height: 58px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wide">Pacientes Activos</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">@Model.TotalMascotas</h3>
+                </div>
+            </div>
+            <div class="pt-2 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <a asp-controller="Mascotas" asp-action="Index" class="text-success text-decoration-none small fw-semibold">
+                    Ver mascotas <i class="bi bi-arrow-right"></i>
+                </a>
+                <span class="badge bg-success bg-opacity-10 text-success small">Activas</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card h-100 p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-4 bg-info bg-opacity-15 p-3 me-3 text-info fs-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 58px; height: 58px; border: 1px solid rgba(6, 182, 212, 0.25);">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wide">Dueños Registrados</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">@Model.TotalDuenos</h3>
+                </div>
+            </div>
+            <div class="pt-2 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <a asp-controller="Dueno" asp-action="Index" class="text-info text-decoration-none small fw-semibold">
+                    Ver dueños <i class="bi bi-arrow-right"></i>
+                </a>
+                <span class="badge bg-info bg-opacity-10 text-info small">Clientes</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="glass-card h-100 p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-4 bg-warning bg-opacity-15 p-3 me-3 text-warning fs-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 58px; height: 58px; border: 1px solid rgba(245, 158, 11, 0.25);">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wide">Consultas Médicas</span>
+                    <h3 class="fw-bold mb-0 text-dark mt-1">@Model.TotalConsultas</h3>
+                </div>
+            </div>
+            <div class="pt-2 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <a asp-controller="Consultas" asp-action="Index" class="text-warning text-decoration-none small fw-semibold">
+                    Ver historial <i class="bi bi-arrow-right"></i>
+                </a>
+                <span class="badge bg-warning bg-opacity-10 text-warning small">Total</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos y Próximas Citas -->
+<div class="row g-4">
+    <!-- Próximas Citas Glass -->
+    <div class="col-lg-8">
+        <div class="glass-card h-100 overflow-hidden">
+            <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-clock-history text-primary me-2"></i> Próximas Citas Programadas
+                </h5>
+                <a asp-controller="Citas" asp-action="Create" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Nueva Cita
+                </a>
+            </div>
+            <div class="p-0">
+                @if (Model.ProximasCitas != null && Model.ProximasCitas.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha / Hora</th>
+                                    <th>Mascota & Dueño</th>
+                                    <th>Veterinario</th>
+                                    <th>Motivo</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cita in Model.ProximasCitas)
+                                {
+                                    string badgeClass = cita.EstadoCita switch
+                                    {
+                                        "Pendiente" => "bg-warning bg-opacity-15 text-warning border border-warning",
+                                        "Confirmada" => "bg-info bg-opacity-15 text-info border border-info",
+                                        "En Atención" => "bg-primary bg-opacity-15 text-primary border border-primary",
+                                        "Completada" => "bg-success bg-opacity-15 text-success border border-success",
+                                        _ => "bg-secondary bg-opacity-15 text-secondary border border-secondary"
+                                    };
+
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold text-dark">@cita.FechaHoraInicio.ToString("dd/MM/yyyy")</span><br />
+                                            <small class="text-muted">@cita.FechaHoraInicio.ToString("hh:mm tt")</small>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark">
+                                                <i class="bi bi-paw me-1 text-primary"></i> @(cita.IdMascotaNavigation?.NombreMascota ?? "Sin mascota")
+                                            </div>
+                                            <small class="text-muted">
+                                                Dueño: @(cita.IdMascotaNavigation?.IdDuenoNavigation?.Nombre) @(cita.IdMascotaNavigation?.IdDuenoNavigation?.Apellidos)
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small class="fw-semibold text-dark">Dr(a). @(cita.IdEmpleadoNavigation?.Nombre) @(cita.IdEmpleadoNavigation?.Apellidos)</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-truncate d-inline-block text-muted" style="max-width: 160px;" title="@cita.Motivo">
+                                                @(string.IsNullOrEmpty(cita.Motivo) ? "Consulta general" : cita.Motivo)
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge @badgeClass">@cita.EstadoCita</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-controller="Citas" asp-action="Details" asp-route-id="@cita.IdCita" class="btn btn-sm btn-outline-info" title="Ver Detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x text-muted fs-1 mb-2"></i>
+                        <p class="text-muted mb-2">No hay citas programadas próximamente.</p>
+                        <a asp-controller="Citas" asp-action="Create" class="btn btn-outline-primary btn-sm">Agendar la primera cita</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral: Acciones Rápidas Glass -->
+    <div class="col-lg-4">
+        <div class="glass-card mb-4 p-3">
+            <h5 class="fw-bold mb-3 text-dark pb-2 border-bottom border-secondary border-opacity-10">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i> Acciones Rápidas
+            </h5>
+            <div class="d-grid gap-2">
+                <a asp-controller="Citas" asp-action="Create" class="btn btn-outline-primary text-start py-2 d-flex align-items-center">
+                    <span class="p-2 rounded-3 bg-primary bg-opacity-10 me-2 text-primary">
+                        <i class="bi bi-calendar-plus fs-5"></i>
+                    </span>
+                    <span>Agendar Nueva Cita</span>
+                </a>
+                <a asp-controller="Consultas" asp-action="Create" class="btn btn-outline-success text-start py-2 d-flex align-items-center">
+                    <span class="p-2 rounded-3 bg-success bg-opacity-10 me-2 text-success">
+                        <i class="bi bi-clipboard2-pulse fs-5"></i>
+                    </span>
+                    <span>Registrar Consulta Médica</span>
+                </a>
+                <a asp-controller="Mascotas" asp-action="Create" class="btn btn-outline-info text-start py-2 d-flex align-items-center">
+                    <span class="p-2 rounded-3 bg-info bg-opacity-10 me-2 text-info">
+                        <i class="bi bi-feather fs-5"></i>
+                    </span>
+                    <span>Registrar Paciente (Mascota)</span>
+                </a>
+                <a asp-controller="Dueno" asp-action="Create" class="btn btn-outline-secondary text-start py-2 d-flex align-items-center">
+                    <span class="p-2 rounded-3 bg-secondary bg-opacity-10 me-2 text-secondary">
+                        <i class="bi bi-person-plus fs-5"></i>
+                    </span>
+                    <span>Registrar Nuevo Dueño</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="glass-card p-3">
+            <h5 class="fw-bold mb-3 text-dark pb-2 border-bottom border-secondary border-opacity-10">
+                <i class="bi bi-shield-check text-primary me-2"></i> Calidad del Software
+            </h5>
+            <div class="small text-muted">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check2-circle text-success me-2 fs-5"></i>
+                    <span><strong>Materia:</strong> Ing. Requerimientos y Calidad</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-check2-circle text-success me-2 fs-5"></i>
+                    <span><strong>Diseño:</strong> Glassmorphism UI Reactiva</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check2-circle text-success me-2 fs-5"></i>
+                    <span><strong>Periodo:</strong> Tercer Cuatrimestre 2026</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,44 +1,140 @@
 @model ProyectoVet.Models.Cita
 
 @{
-    ViewData["Title"] = "Crear Cita";
+    ViewData["Title"] = "Agendar Cita";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card glass-card border-0 shadow-sm rounded-4">
+            <div class="card-header border-0 py-3">
+                <h4 class="card-title fw-bold text-dark mb-0">
+                    <i class="bi bi-calendar-plus text-primary me-2"></i> Agendar Nueva Cita
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger py-2 px-3 mb-3 small" role="alert" style="@(ViewData.ModelState.IsValid ? "display:none;" : "")"></div>
 
-<form asp-action="Create" method="post">
-    <div class="form-group">
-        <label asp-for="FechaHoraInicio"></label>
-        <input asp-for="FechaHoraInicio" class="form-control" type="datetime-local" />
+                    @if (ViewBag.NoHayMascotasActivas == true)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle me-1"></i> No hay mascotas activas registradas. Primero debe registrar una mascota antes de agendar citas.
+                        </div>
+                    }
+
+                    @if (ViewBag.NoHayVeterinariosActivos == true)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle me-1"></i> No hay veterinarios activos disponibles en el sistema.
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="IdMascota" class="form-label fw-semibold">Paciente (Mascota y Dueño) *</label>
+                            <select asp-for="IdMascota" asp-items="ViewBag.IdMascota" class="form-select" required>
+                                <option value="">-- Seleccione el paciente --</option>
+                            </select>
+                            <span asp-validation-for="IdMascota" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IdEmpleado" class="form-label fw-semibold">Veterinario Asignado *</label>
+                            <select asp-for="IdEmpleado" asp-items="ViewBag.IdEmpleado" class="form-select" required>
+                                <option value="">-- Seleccione un veterinario --</option>
+                            </select>
+                            <span asp-validation-for="IdEmpleado" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CreadaPorEmpleadoId" class="form-label fw-semibold">Registrado Por</label>
+                            <select asp-for="CreadaPorEmpleadoId" asp-items="ViewBag.CreadaPorEmpleadoId" class="form-select">
+                                <option value="">-- Seleccione empleado (opcional) --</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="FechaHoraInicio" class="form-label fw-semibold">Fecha y Hora de Inicio *</label>
+                            <input asp-for="FechaHoraInicio" id="fechaHoraInicio" class="form-control" type="datetime-local" required />
+                            <span asp-validation-for="FechaHoraInicio" class="text-danger small"></span>
+                            <small class="text-muted d-block mt-1">Horario: Lunes a Sábado, 08:00 a 18:59.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="FechaHoraFin" class="form-label fw-semibold">Fecha y Hora Estimada de Fin *</label>
+                            <input asp-for="FechaHoraFin" id="fechaHoraFin" class="form-control" type="datetime-local" required />
+                            <span asp-validation-for="FechaHoraFin" class="text-danger small"></span>
+                            <small class="text-muted d-block mt-1">Mismo día, máximo 19:00 (duración sugerida: 30 min).</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="EstadoCita" class="form-label fw-semibold">Estado de la Cita *</label>
+                            <select asp-for="EstadoCita" class="form-select" required>
+                                <option value="Pendiente" selected>Pendiente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Cancelada">Cancelada</option>
+                                <option value="No asistio">No asistió</option>
+                            </select>
+                            <span asp-validation-for="EstadoCita" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Motivo" class="form-label fw-semibold">Motivo de la Cita *</label>
+                            <input asp-for="Motivo" class="form-control" placeholder="Ej: Control general, Vacunación, Fiebre..." required />
+                            <span asp-validation-for="Motivo" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones / Indicaciones Previas</label>
+                            <textarea asp-for="Observaciones" class="form-control" rows="3" placeholder="Instrucciones para el dueño (ej: ayuno de 8 horas, traer carnet...)"></textarea>
+                            <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-calendar-check me-1"></i> Agendar Cita
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="FechaHoraFin"></label>
-        <input asp-for="FechaHoraFin" class="form-control" type="datetime-local" />
-    </div>
-    <div class="form-group">
-        <label asp-for="EstadoCita"></label>
-        <input asp-for="EstadoCita" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Motivo"></label>
-        <input asp-for="Motivo" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Observaciones"></label>
-        <textarea asp-for="Observaciones" class="form-control"></textarea>
-    </div>
-    <div class="form-group">
-        <label asp-for="IdMascota">Mascota</label>
-        <select asp-for="IdMascota" asp-items="@((SelectList)ViewData["IdMascota"])" class="form-control"></select>
-    </div>
-    <div class="form-group">
-        <label asp-for="IdEmpleado">Empleado</label>
-        <select asp-for="IdEmpleado" asp-items="@((SelectList)ViewData["IdEmpleado"])" class="form-control"></select>
-    </div>
-    <div class="form-group">
-        <label asp-for="CreadaPorEmpleadoId">Creada por (opcional)</label>
-        <select asp-for="CreadaPorEmpleadoId" asp-items="@((SelectList)ViewData["CreadaPorEmpleadoId"])" class="form-control"></select>
-    </div>
-    <button type="submit" class="btn btn-primary">Crear</button>
-    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
-</form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var inputInicio = document.getElementById('fechaHoraInicio');
+            var inputFin = document.getElementById('fechaHoraFin');
+            if (!inputInicio || !inputFin) return;
+
+            inputInicio.addEventListener('change', function () {
+                if (!inputInicio.value) return;
+                var inicioDate = new Date(inputInicio.value);
+                if (isNaN(inicioDate.getTime())) return;
+
+                // Sugerir fin 30 minutos después
+                var finDate = new Date(inicioDate.getTime() + (30 * 60 * 1000));
+                
+                // Formatear a YYYY-MM-DDTHH:mm
+                var year = finDate.getFullYear();
+                var month = String(finDate.getMonth() + 1).padStart(2, '0');
+                var day = String(finDate.getDate()).padStart(2, '0');
+                var hours = String(finDate.getHours()).padStart(2, '0');
+                var minutes = String(finDate.getMinutes()).padStart(2, '0');
+                var finStr = year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+
+                if (!inputFin.value || new Date(inputFin.value) <= inicioDate) {
+                    inputFin.value = finStr;
+                }
+            });
+        });
+    </script>
+}

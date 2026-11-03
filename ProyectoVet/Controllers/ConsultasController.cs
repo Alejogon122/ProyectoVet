@@ -23,7 +23,10 @@ namespace ProyectoVet.Controllers
             var consultas = _context.Consultas
                 .Include(c => c.IdCitaNavigation)
                 .Include(c => c.IdExpedienteNavigation)
-                .Include(c => c.IdVeterinarioNavigation);
+                    .ThenInclude(e => e.IdMascotaNavigation)
+                        .ThenInclude(m => m.IdDuenoNavigation!)
+                .Include(c => c.IdVeterinarioNavigation!)
+                .OrderByDescending(c => c.FechaConsulta);
             return View(await consultas.ToListAsync());
         }
 
@@ -35,7 +38,9 @@ namespace ProyectoVet.Controllers
             var consulta = await _context.Consultas
                 .Include(c => c.IdCitaNavigation)
                 .Include(c => c.IdExpedienteNavigation)
-                .Include(c => c.IdVeterinarioNavigation)
+                    .ThenInclude(e => e.IdMascotaNavigation)
+                        .ThenInclude(m => m.IdDuenoNavigation!)
+                .Include(c => c.IdVeterinarioNavigation!)
                 .FirstOrDefaultAsync(m => m.IdConsulta == id);
             if (consulta == null) return NotFound();
 
@@ -45,9 +50,7 @@ namespace ProyectoVet.Controllers
         // GET: Consultas/Create
         public IActionResult Create()
         {
-            ViewData["IdCita"] = new SelectList(_context.Citas, "IdCita", "IdCita");
-            ViewData["IdExpediente"] = new SelectList(_context.ExpedientesClinicos, "IdExpediente", "IdExpediente");
-            ViewData["IdVeterinario"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre");
+            CargarConsultasDropDowns();
             return View();
         }
 
@@ -60,11 +63,10 @@ namespace ProyectoVet.Controllers
             {
                 _context.Add(consulta);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "¡La consulta médica ha sido registrada exitosamente!";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdCita"] = new SelectList(_context.Citas, "IdCita", "IdCita", consulta.IdCita);
-            ViewData["IdExpediente"] = new SelectList(_context.ExpedientesClinicos, "IdExpediente", "IdExpediente", consulta.IdExpediente);
-            ViewData["IdVeterinario"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", consulta.IdVeterinario);
+            CargarConsultasDropDowns(consulta.IdExpediente, consulta.IdCita, consulta.IdVeterinario);
             return View(consulta);
         }
 
@@ -75,9 +77,7 @@ namespace ProyectoVet.Controllers
 
             var consulta = await _context.Consultas.FindAsync(id);
             if (consulta == null) return NotFound();
-            ViewData["IdCita"] = new SelectList(_context.Citas, "IdCita", "IdCita", consulta.IdCita);
-            ViewData["IdExpediente"] = new SelectList(_context.ExpedientesClinicos, "IdExpediente", "IdExpediente", consulta.IdExpediente);
-            ViewData["IdVeterinario"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", consulta.IdVeterinario);
+            CargarConsultasDropDowns(consulta.IdExpediente, consulta.IdCita, consulta.IdVeterinario);
             return View(consulta);
         }
 
@@ -94,6 +94,7 @@ namespace ProyectoVet.Controllers
                 {
                     _context.Update(consulta);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "¡La consulta médica ha sido actualizada exitosamente!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -102,10 +103,51 @@ namespace ProyectoVet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdCita"] = new SelectList(_context.Citas, "IdCita", "IdCita", consulta.IdCita);
-            ViewData["IdExpediente"] = new SelectList(_context.ExpedientesClinicos, "IdExpediente", "IdExpediente", consulta.IdExpediente);
-            ViewData["IdVeterinario"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", consulta.IdVeterinario);
+            CargarConsultasDropDowns(consulta.IdExpediente, consulta.IdCita, consulta.IdVeterinario);
             return View(consulta);
+        }
+
+        private void CargarConsultasDropDowns(object? expedienteId = null, object? citaId = null, object? veterinarioId = null)
+        {
+            var expedientes = _context.ExpedientesClinicos
+                .Include(e => e.IdMascotaNavigation)
+                    .ThenInclude(m => m.IdDuenoNavigation)
+                .OrderBy(e => e.IdMascotaNavigation != null ? e.IdMascotaNavigation.NombreMascota : string.Empty)
+                .Select(e => new
+                {
+                    e.IdExpediente,
+                    Descripcion = e.IdMascotaNavigation == null
+                        ? $"Exp. #{e.IdExpediente} - Mascota no disponible"
+                        : $"Exp. #{e.IdExpediente} - {e.IdMascotaNavigation.NombreMascota} ({e.IdMascotaNavigation.ClaseAnimal} - Dueño: {(e.IdMascotaNavigation.IdDuenoNavigation != null ? $"{e.IdMascotaNavigation.IdDuenoNavigation.Nombre} {e.IdMascotaNavigation.IdDuenoNavigation.Apellidos}" : "Sin dueño")})"
+                })
+                .ToList();
+
+            var citas = _context.Citas
+                .Include(c => c.IdMascotaNavigation)
+                .Where(c => c.EstadoCita != "Cancelada")
+                .OrderByDescending(c => c.FechaHoraInicio)
+                .Select(c => new
+                {
+                    c.IdCita,
+                    Descripcion = c.IdMascotaNavigation == null
+                        ? $"Cita #{c.IdCita} - Mascota no disponible ({c.FechaHoraInicio.ToString("dd/MM/yyyy hh:mm tt")} - {c.Motivo ?? "Sin motivo"})"
+                        : $"Cita #{c.IdCita} - {c.IdMascotaNavigation.NombreMascota} ({c.FechaHoraInicio.ToString("dd/MM/yyyy hh:mm tt")} - {c.Motivo ?? "Sin motivo"})"
+                })
+                .ToList();
+
+            var veterinarios = _context.Empleados
+                .Where(e => e.Activo)
+                .OrderBy(e => e.Nombre)
+                .Select(e => new
+                {
+                    e.IdEmpleado,
+                    NombreCompleto = $"Dr(a). {e.Nombre} {e.Apellidos}"
+                })
+                .ToList();
+
+            ViewBag.IdExpediente = new SelectList(expedientes, "IdExpediente", "Descripcion", expedienteId);
+            ViewBag.IdCita = new SelectList(citas, "IdCita", "Descripcion", citaId);
+            ViewBag.IdVeterinario = new SelectList(veterinarios, "IdEmpleado", "NombreCompleto", veterinarioId);
         }
 
         // GET: Consultas/Delete/5

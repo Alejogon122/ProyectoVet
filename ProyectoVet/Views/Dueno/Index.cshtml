@@ -4,42 +4,98 @@
     ViewData["Title"] = "Listado de Dueños";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="card-title fw-bold text-dark mb-0">
+                <i class="bi bi-people text-primary me-2"></i> Dueños de Mascotas
+            </h4>
+            <small class="text-muted">Directorio de clientes y propietarios responsables registrados.</small>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-person-plus me-1"></i> Registrar Dueño
+        </a>
+    </div>
 
-<p>
-    <a class="btn btn-primary" asp-action="Create">Crear nuevo</a>
-</p>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Apellidos</th>
-            <th>Cédula</th>
-            <th>Teléfono</th>
-            <th>Correo</th>
-            <th>Fecha Registro</th>
-            <th>Activo</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Nombre</td>
-            <td>@item.Apellidos</td>
-            <td>@item.NumeroCedula</td>
-            <td>@item.Telefono</td>
-            <td>@item.CorreoElectronico</td>
-            <td>@item.FechaRegistro.ToString("g")</td>
-            <td>@(item.Activo ? "Sí" : "No")</td>
-            <td>
-                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdDueno">Detalles</a>
-                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.IdDueno">Editar</a>
-                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdDueno">Borrar</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Cédula</th>
+                            <th>Teléfonos</th>
+                            <th>Correo Electrónico</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">
+                                    <i class="bi bi-person-circle me-1 text-primary"></i> @item.Nombre @item.Apellidos
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@item.NumeroCedula</span>
+                            </td>
+                            <td>
+                                <span><i class="bi bi-telephone text-muted me-1"></i> @item.Telefono</span><br />
+                                @if (!string.IsNullOrEmpty(item.TelefonoOpcional))
+                                {
+                                    <small class="text-muted"><i class="bi bi-phone me-1"></i> @item.TelefonoOpcional</small>
+                                }
+                            </td>
+                            <td>
+                                <a href="mailto:@item.CorreoElectronico" class="text-decoration-none">
+                                    <i class="bi bi-envelope me-1 text-secondary"></i> @item.CorreoElectronico
+                                </a>
+                            </td>
+                            <td>
+                                <small class="text-muted">@item.FechaRegistro.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td>
+                                @if (item.Activo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@item.IdDueno" title="Detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdDueno" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdDueno" title="Borrar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-person-x text-muted fs-1 mb-2"></i>
+                <p class="text-muted">No se encontraron dueños registrados.</p>
+                <a class="btn btn-outline-primary btn-sm" asp-action="Create">Registrar el primer dueño</a>
+            </div>
+        }
+    </div>
+</div>

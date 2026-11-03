@@ -10,11 +10,25 @@ namespace ProyectoVet.Controllers
 {
     public class EmpleadoesController : Controller
     {
+        private static readonly string[] RolesPredeterminados = ["Administrador", "Veterinario", "Recepcionista"];
         private readonly VeterinariaContext _context;
 
         public EmpleadoesController(VeterinariaContext context)
         {
             _context = context;
+        }
+
+        private async Task EnsureRolesExistAsync()
+        {
+            foreach (var nombreRol in RolesPredeterminados)
+            {
+                if (!await _context.Roles.AnyAsync(r => r.NombreRol == nombreRol))
+                {
+                    _context.Roles.Add(new Role { NombreRol = nombreRol });
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         // GET: Empleadoes
@@ -38,9 +52,10 @@ namespace ProyectoVet.Controllers
         }
 
         // GET: Empleadoes/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdRol"] = new SelectList(_context.Roles, "IdRol", "NombreRol");
+            await EnsureRolesExistAsync();
+            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol");
             return View();
         }
 
@@ -49,13 +64,20 @@ namespace ProyectoVet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Nombre,Apellidos,NumeroCedula,Telefono,CorreoElectronico,Contrasena,IdRol,Activo,FechaContratacion")] Empleado empleado)
         {
+            await EnsureRolesExistAsync();
+
+            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol))
+            {
+                ModelState.AddModelError(nameof(Empleado.IdRol), "Debe seleccionar un rol válido.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(empleado);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdRol"] = new SelectList(_context.Roles, "IdRol", "NombreRol", empleado.IdRol);
+            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 
@@ -66,7 +88,9 @@ namespace ProyectoVet.Controllers
 
             var empleado = await _context.Empleados.FindAsync(id);
             if (empleado == null) return NotFound();
-            ViewData["IdRol"] = new SelectList(_context.Roles, "IdRol", "NombreRol", empleado.IdRol);
+
+            await EnsureRolesExistAsync();
+            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 
@@ -76,6 +100,13 @@ namespace ProyectoVet.Controllers
         public async Task<IActionResult> Edit(int id, [Bind("IdEmpleado,Nombre,Apellidos,NumeroCedula,Telefono,CorreoElectronico,Contrasena,IdRol,Activo,FechaContratacion")] Empleado empleado)
         {
             if (id != empleado.IdEmpleado) return NotFound();
+
+            await EnsureRolesExistAsync();
+
+            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol))
+            {
+                ModelState.AddModelError(nameof(Empleado.IdRol), "Debe seleccionar un rol válido.");
+            }
 
             if (ModelState.IsValid)
             {
@@ -91,7 +122,7 @@ namespace ProyectoVet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdRol"] = new SelectList(_context.Roles, "IdRol", "NombreRol", empleado.IdRol);
+            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 

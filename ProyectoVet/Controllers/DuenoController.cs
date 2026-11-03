@@ -47,6 +47,7 @@ namespace ProyectoVet.Controllers
             {
                 _context.Add(dueno);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"¡El dueño '{dueno.Nombre} {dueno.Apellidos}' ha sido registrado exitosamente!";
                 return RedirectToAction(nameof(Index));
             }
             return View(dueno);
@@ -75,6 +76,7 @@ namespace ProyectoVet.Controllers
                 {
                     _context.Update(dueno);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"¡Los datos del dueño '{dueno.Nombre} {dueno.Apellidos}' han sido actualizados exitosamente!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {

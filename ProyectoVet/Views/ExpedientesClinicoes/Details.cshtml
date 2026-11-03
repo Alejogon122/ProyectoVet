@@ -1,33 +1,120 @@
 @model ProyectoVet.Models.ExpedientesClinico
 
 @{
-    ViewData["Title"] = "Detalles expediente";
+    ViewData["Title"] = "Expediente Clínico #" + Model.IdExpediente;
 }
 
-<h1>Detalles expediente</h1>
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card glass-card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center">
+                <h4 class="card-title fw-bold text-dark mb-0">
+                    <i class="bi bi-folder2-open text-primary me-2"></i> Expediente Clínico #@Model.IdExpediente
+                </h4>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-outline-warning btn-sm" asp-action="Edit" asp-route-id="@Model.IdExpediente">
+                        <i class="bi bi-pencil me-1"></i> Editar
+                    </a>
+                    <a class="btn btn-outline-secondary btn-sm" asp-action="Index">
+                        <i class="bi bi-arrow-left me-1"></i> Volver a Expedientes
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white bg-opacity-25 rounded-3 border border-light">
+                            <span class="text-muted small fw-semibold text-uppercase">Paciente</span>
+                            <h5 class="fw-bold text-dark mt-1 mb-0">
+                                <i class="bi bi-paw text-primary me-1"></i> @(Model.IdMascotaNavigation?.NombreMascota ?? "Sin asignar")
+                            </h5>
+                            <small class="text-muted">
+                                @(Model.IdMascotaNavigation?.ClaseAnimal ?? "") • @(Model.IdMascotaNavigation?.Raza ?? "Raza no especificada") • @(Model.IdMascotaNavigation?.Sexo ?? "Sexo no especificado")
+                            </small>
+                        </div>
+                    </div>
 
-<div>
-    <h4>Expediente</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">Id</dt>
-        <dd class="col-sm-10">@Model.IdExpediente</dd>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white bg-opacity-25 rounded-3 border border-light">
+                            <span class="text-muted small fw-semibold text-uppercase">Dueño Responsable</span>
+                            <h5 class="fw-bold text-dark mt-1 mb-0">
+                                <i class="bi bi-person text-primary me-1"></i> @(Model.IdMascotaNavigation?.IdDuenoNavigation?.Nombre) @(Model.IdMascotaNavigation?.IdDuenoNavigation?.Apellidos)
+                            </h5>
+                            <small class="text-muted">
+                                Tel: @(Model.IdMascotaNavigation?.IdDuenoNavigation?.Telefono ?? "Sin teléfono") • Correo: @(Model.IdMascotaNavigation?.IdDuenoNavigation?.CorreoElectronico ?? "Sin correo")
+                            </small>
+                        </div>
+                    </div>
 
-        <dt class="col-sm-2">Mascota</dt>
-        <dd class="col-sm-10">@Model.IdMascotaNavigation?.NombreMascota</dd>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-semibold text-uppercase">Fecha de Apertura</label>
+                        <p class="fw-semibold text-dark mb-0">@Model.FechaApertura.ToString("dd/MM/yyyy hh:mm tt")</p>
+                    </div>
 
-        <dt class="col-sm-2">Fecha apertura</dt>
-        <dd class="col-sm-10">@Model.FechaApertura</dd>
+                    <div class="col-md-8">
+                        <label class="form-label text-muted small fw-semibold text-uppercase">Alergias Conocidas</label>
+                        @if (string.IsNullOrEmpty(Model.Alergias) || Model.Alergias.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <p class="text-muted mb-0">Ninguna alergia registrada.</p>
+                        }
+                        else
+                        {
+                            <p class="badge bg-danger bg-opacity-10 text-danger border border-danger mb-0 px-2 py-1">@Model.Alergias</p>
+                        }
+                    </div>
 
-        <dt class="col-sm-2">Alergias</dt>
-        <dd class="col-sm-10">@Model.Alergias</dd>
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-semibold text-uppercase">Antecedentes Médicos / Quirúrgicos</label>
+                        <div class="p-3 bg-white bg-opacity-25 rounded-3 border border-light">
+                            <p class="text-dark mb-0">@(string.IsNullOrEmpty(Model.Antecedentes) ? "Sin antecedentes médicos o cirugías previas reportadas." : Model.Antecedentes)</p>
+                        </div>
+                    </div>
 
-        <dt class="col-sm-2">Antecedentes</dt>
-        <dd class="col-sm-10">@Model.Antecedentes</dd>
+                    <div class="col-12">
+                        <label class="form-label text-muted small fw-semibold text-uppercase">Observaciones Generales</label>
+                        <div class="p-3 bg-white bg-opacity-25 rounded-3 border border-light">
+                            <p class="text-dark mb-0">@(string.IsNullOrEmpty(Model.ObservacionesGenerales) ? "Sin observaciones registradas." : Model.ObservacionesGenerales)</p>
+                        </div>
+                    </div>
+                </div>
 
-        <dt class="col-sm-2">Observaciones generales</dt>
-        <dd class="col-sm-10">@Model.ObservacionesGenerales</dd>
-    </dl>
+                @if (Model.Consulta != null && Model.Consulta.Any())
+                {
+                    <hr class="my-4" />
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="bi bi-journal-medical text-primary me-2"></i> Historial de Consultas Realizadas (@Model.Consulta.Count)
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Veterinario</th>
+                                    <th>Motivo</th>
+                                    <th>Diagnóstico</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var c in Model.Consulta.OrderByDescending(co => co.FechaConsulta))
+                            {
+                                <tr>
+                                    <td>@c.FechaConsulta.ToString("dd/MM/yyyy")</td>
+                                    <td>Dr(a). @c.IdVeterinarioNavigation?.Nombre @c.IdVeterinarioNavigation?.Apellidos</td>
+                                    <td>@c.MotivoConsulta</td>
+                                    <td>@(string.IsNullOrEmpty(c.Diagnostico) ? "En proceso" : c.Diagnostico)</td>
+                                    <td class="text-end">
+                                        <a asp-controller="Consultas" asp-action="Details" asp-route-id="@c.IdConsulta" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
-
-<a class="btn btn-secondary" asp-action="Index">Volver</a>

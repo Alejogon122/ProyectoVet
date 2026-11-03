@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +22,11 @@ namespace ProyectoVet.Controllers
         public async Task<IActionResult> Index()
         {
             var citas = _context.Citas
-                .Include(c => c.IdMascotaNavigation)
+                .Include(c => c.IdMascotaNavigation!)
+                    .ThenInclude(m => m.IdDuenoNavigation)
                 .Include(c => c.IdEmpleadoNavigation)
-                .Include(c => c.CreadaPorEmpleado);
+                .Include(c => c.CreadaPorEmpleado)
+                .OrderByDescending(c => c.FechaHoraInicio);
             return View(await citas.ToListAsync());
         }
 
@@ -33,7 +36,8 @@ namespace ProyectoVet.Controllers
             if (id == null) return NotFound();
 
             var cita = await _context.Citas
-                .Include(c => c.IdMascotaNavigation)
+                .Include(c => c.IdMascotaNavigation!)
+                    .ThenInclude(m => m.IdDuenoNavigation)
                 .Include(c => c.IdEmpleadoNavigation)
                 .Include(c => c.CreadaPorEmpleado)
                 .FirstOrDefaultAsync(m => m.IdCita == id);
@@ -45,10 +49,22 @@ namespace ProyectoVet.Controllers
         // GET: Citas/Create
         public IActionResult Create()
         {
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota");
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre");
-            ViewData["CreadaPorEmpleadoId"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre");
-            return View();
+            CargarCitasDropDowns();
+
+            var fechaSugerida = DateTime.Today.AddDays(1).AddHours(9);
+            if (fechaSugerida.DayOfWeek == DayOfWeek.Sunday)
+            {
+                fechaSugerida = fechaSugerida.AddDays(1);
+            }
+
+            var cita = new Cita
+            {
+                FechaHoraInicio = fechaSugerida,
+                FechaHoraFin = fechaSugerida.AddMinutes(30),
+                EstadoCita = "Pendiente"
+            };
+
+            return View(cita);
         }
 
         // POST: Citas/Create
@@ -56,15 +72,17 @@ namespace ProyectoVet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdCita,IdMascota,IdEmpleado,FechaHoraInicio,FechaHoraFin,EstadoCita,Motivo,Observaciones,FechaCreacion,CreadaPorEmpleadoId")] Cita cita)
         {
+            await NormalizarYValidarCitaAsync(cita);
+
             if (ModelState.IsValid)
             {
                 _context.Add(cita);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "¡La cita ha sido programada exitosamente!";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", cita.IdMascota);
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.IdEmpleado);
-            ViewData["CreadaPorEmpleadoId"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.CreadaPorEmpleadoId);
+
+            CargarCitasDropDowns(cita.IdMascota, cita.IdEmpleado, cita.CreadaPorEmpleadoId);
             return View(cita);
         }
 
@@ -75,9 +93,7 @@ namespace ProyectoVet.Controllers
 
             var cita = await _context.Citas.FindAsync(id);
             if (cita == null) return NotFound();
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", cita.IdMascota);
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.IdEmpleado);
-            ViewData["CreadaPorEmpleadoId"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.CreadaPorEmpleadoId);
+            CargarCitasDropDowns(cita.IdMascota, cita.IdEmpleado, cita.CreadaPorEmpleadoId);
             return View(cita);
         }
 
@@ -88,12 +104,15 @@ namespace ProyectoVet.Controllers
         {
             if (id != cita.IdCita) return NotFound();
 
+            await NormalizarYValidarCitaAsync(cita);
+
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(cita);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "¡La cita ha sido actualizada exitosamente!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -102,10 +121,170 @@ namespace ProyectoVet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdMascota"] = new SelectList(_context.Mascotas, "IdMascota", "NombreMascota", cita.IdMascota);
-            ViewData["IdEmpleado"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.IdEmpleado);
-            ViewData["CreadaPorEmpleadoId"] = new SelectList(_context.Empleados, "IdEmpleado", "Nombre", cita.CreadaPorEmpleadoId);
+
+            CargarCitasDropDowns(cita.IdMascota, cita.IdEmpleado, cita.CreadaPorEmpleadoId);
             return View(cita);
+        }
+
+        private async Task NormalizarYValidarCitaAsync(Cita cita)
+        {
+            cita.Motivo = string.IsNullOrWhiteSpace(cita.Motivo) ? "Consulta general" : cita.Motivo.Trim();
+            cita.Observaciones = string.IsNullOrWhiteSpace(cita.Observaciones) ? null : cita.Observaciones.Trim();
+
+            var estado = cita.EstadoCita?.Trim();
+            if (string.Equals(estado, "En Atención", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(estado, "En Atencion", StringComparison.OrdinalIgnoreCase))
+            {
+                cita.EstadoCita = "Confirmada";
+            }
+            else if (string.Equals(estado, "No asistió", StringComparison.OrdinalIgnoreCase))
+            {
+                cita.EstadoCita = "No asistio";
+            }
+            else if (!string.IsNullOrWhiteSpace(estado))
+            {
+                cita.EstadoCita = estado;
+            }
+            else
+            {
+                cita.EstadoCita = "Pendiente";
+            }
+
+            var estadosValidos = new[] { "Pendiente", "Confirmada", "Completada", "Cancelada", "No asistio" };
+            if (!estadosValidos.Contains(cita.EstadoCita))
+            {
+                ModelState.AddModelError(nameof(Cita.EstadoCita), "El estado de la cita debe ser Pendiente, Confirmada, Completada, Cancelada o No asistio.");
+            }
+
+            if (cita.FechaCreacion == default)
+            {
+                cita.FechaCreacion = DateTime.Now;
+            }
+
+            // Validaciones según restricciones de base de datos
+            // 1. Rango horario: Fin > Inicio
+            if (cita.FechaHoraFin <= cita.FechaHoraInicio)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraFin), "La hora de finalización debe ser posterior a la hora de inicio.");
+            }
+
+            // 2. Mismo día
+            if (cita.FechaHoraInicio.Date != cita.FechaHoraFin.Date)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraFin), "La cita debe iniciar y finalizar el mismo día.");
+            }
+
+            // 3. Duración: entre 5 y 480 minutos
+            var duracionMinutos = (cita.FechaHoraFin - cita.FechaHoraInicio).TotalMinutes;
+            if (duracionMinutos < 5 || duracionMinutos > 480)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraFin), "La duración de la cita debe estar entre 5 minutos y 8 horas (480 minutos).");
+            }
+
+            // 4. Día de atención: Lunes a Sábado
+            if (cita.FechaHoraInicio.DayOfWeek == DayOfWeek.Sunday)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraInicio), "La clínica no atiende los domingos. Debe agendar entre lunes y sábado.");
+            }
+
+            // 5. Horario de atención: 08:00 a 19:00
+            var horaInicio = cita.FechaHoraInicio.TimeOfDay;
+            var horaFin = cita.FechaHoraFin.TimeOfDay;
+            var horaApertura = new TimeSpan(8, 0, 0);
+            var horaCierre = new TimeSpan(19, 0, 0);
+
+            if (horaInicio < horaApertura || horaInicio >= horaCierre)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraInicio), "Las citas deben iniciar entre las 08:00 y las 18:59.");
+            }
+
+            if (horaFin > horaCierre)
+            {
+                ModelState.AddModelError(nameof(Cita.FechaHoraFin), "La cita no puede finalizar después de las 19:00.");
+            }
+
+            // 6. Conflicto de horario del Veterinario
+            if (cita.IdEmpleado > 0 && cita.EstadoCita != "Cancelada")
+            {
+                var solapamientoVeterinario = await _context.Citas.AnyAsync(c =>
+                    c.IdCita != cita.IdCita &&
+                    c.IdEmpleado == cita.IdEmpleado &&
+                    c.EstadoCita != "Cancelada" &&
+                    cita.FechaHoraInicio < c.FechaHoraFin &&
+                    cita.FechaHoraFin > c.FechaHoraInicio);
+
+                if (solapamientoVeterinario)
+                {
+                    ModelState.AddModelError(nameof(Cita.IdEmpleado), "El veterinario seleccionado ya tiene otra cita activa programada en ese horario.");
+                }
+            }
+
+            // 7. Conflicto de horario de la Mascota
+            if (cita.IdMascota > 0 && cita.EstadoCita != "Cancelada")
+            {
+                var solapamientoMascota = await _context.Citas.AnyAsync(c =>
+                    c.IdCita != cita.IdCita &&
+                    c.IdMascota == cita.IdMascota &&
+                    c.EstadoCita != "Cancelada" &&
+                    cita.FechaHoraInicio < c.FechaHoraFin &&
+                    cita.FechaHoraFin > c.FechaHoraInicio);
+
+                if (solapamientoMascota)
+                {
+                    ModelState.AddModelError(nameof(Cita.IdMascota), "La mascota seleccionada ya tiene otra cita activa programada en ese horario.");
+                }
+            }
+
+            // Remover referencias de navegación para evitar validaciones espurias
+            ModelState.Remove(nameof(Cita.IdEmpleadoNavigation));
+            ModelState.Remove(nameof(Cita.IdMascotaNavigation));
+            ModelState.Remove(nameof(Cita.CreadaPorEmpleado));
+            ModelState.Remove(nameof(Cita.Consulta));
+            ModelState.Remove("IdEmpleadoNavigation");
+            ModelState.Remove("IdMascotaNavigation");
+            ModelState.Remove("CreadaPorEmpleado");
+            ModelState.Remove("Consulta");
+        }
+
+        private void CargarCitasDropDowns(object? mascotaId = null, object? veterinarioId = null, object? creadorId = null)
+        {
+            var mascotas = _context.Mascotas
+                .Include(m => m.IdDuenoNavigation)
+                .Where(m => m.Activa)
+                .OrderBy(m => m.NombreMascota)
+                .Select(m => new
+                {
+                    m.IdMascota,
+                    Descripcion = m.NombreMascota + " - " + m.ClaseAnimal + " (Dueño: " + (m.IdDuenoNavigation != null ? m.IdDuenoNavigation.Nombre + " " + m.IdDuenoNavigation.Apellidos : "Sin dueño") + ")"
+                })
+                .ToList();
+
+            var veterinarios = _context.Empleados
+                .Where(e => e.Activo)
+                .OrderBy(e => e.Nombre)
+                .Select(e => new
+                {
+                    e.IdEmpleado,
+                    NombreCompleto = "Dr(a). " + e.Nombre + " " + e.Apellidos
+                })
+                .ToList();
+
+            var empleados = _context.Empleados
+                .Where(e => e.Activo)
+                .OrderBy(e => e.Nombre)
+                .Select(e => new
+                {
+                    e.IdEmpleado,
+                    NombreCompleto = e.Nombre + " " + e.Apellidos
+                })
+                .ToList();
+
+            ViewBag.IdMascota = new SelectList(mascotas, "IdMascota", "Descripcion", mascotaId);
+            ViewBag.IdEmpleado = new SelectList(veterinarios, "IdEmpleado", "NombreCompleto", veterinarioId);
+            ViewBag.CreadaPorEmpleadoId = new SelectList(empleados, "IdEmpleado", "NombreCompleto", creadorId);
+
+            ViewBag.NoHayMascotasActivas = !mascotas.Any();
+            ViewBag.NoHayVeterinariosActivos = !veterinarios.Any();
         }
 
         // GET: Citas/Delete/5

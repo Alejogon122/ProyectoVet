@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using ProyectoVet.Models;
@@ -274,7 +274,9 @@ public partial class VeterinariaContext : DbContext
 
             entity.HasIndex(e => e.IdDueno, "IX_Mascotas_IdDueno");
 
-            entity.HasIndex(e => e.NumeroMicrochip, "UQ_Mascotas_Microchip").IsUnique();
+            entity.HasIndex(e => e.NumeroMicrochip, "UQ_Mascotas_Microchip")
+                .IsUnique()
+                .HasFilter("([NumeroMicrochip] IS NOT NULL)");
 
             entity.Property(e => e.Activa).HasDefaultValue(true);
             entity.Property(e => e.ClaseAnimal)

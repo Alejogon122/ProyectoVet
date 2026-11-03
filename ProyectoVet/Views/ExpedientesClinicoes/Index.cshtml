@@ -4,38 +4,96 @@
     ViewData["Title"] = "Expedientes Clínicos";
 }
 
-<h1>Expedientes Clínicos</h1>
+<div class="card glass-card border-0 shadow-sm rounded-4">
+    <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="card-title fw-bold text-dark mb-0">
+                <i class="bi bi-folder2-open text-primary me-2"></i> Expedientes Clínicos
+            </h4>
+            <small class="text-muted">Registro histórico y antecedentes médicos de cada paciente.</small>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-folder-plus me-1"></i> Abrir Expediente
+        </a>
+    </div>
 
-<p>
-    <a class="btn btn-primary" asp-action="Create">Crear nuevo</a>
-</p>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Mascota</th>
-            <th>Fecha apertura</th>
-            <th>Alergias</th>
-            <th>Antecedentes</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.IdExpediente</td>
-            <td>@item.IdMascotaNavigation?.NombreMascota</td>
-            <td>@item.FechaApertura</td>
-            <td>@item.Alergias</td>
-            <td>@item.Antecedentes</td>
-            <td>
-                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.IdExpediente">Detalles</a>
-                <a class="btn btn-sm btn-secondary" asp-action="Edit" asp-route-id="@item.IdExpediente">Editar</a>
-                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.IdExpediente">Eliminar</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nº Exp.</th>
+                            <th>Paciente (Mascota)</th>
+                            <th>Dueño Responsable</th>
+                            <th>Fecha Apertura</th>
+                            <th>Alergias</th>
+                            <th>Antecedentes</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-light text-dark border">#@item.IdExpediente</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">
+                                    <i class="bi bi-paw me-1 text-primary"></i> @(item.IdMascotaNavigation?.NombreMascota ?? "Sin asignar")
+                                </div>
+                                <small class="text-muted">@(item.IdMascotaNavigation?.ClaseAnimal ?? "") @(string.IsNullOrEmpty(item.IdMascotaNavigation?.Raza) ? "" : $"• {item.IdMascotaNavigation?.Raza}")</small>
+                            </td>
+                            <td>
+                                <span>@(item.IdMascotaNavigation?.IdDuenoNavigation?.Nombre) @(item.IdMascotaNavigation?.IdDuenoNavigation?.Apellidos)</span><br />
+                                <small class="text-muted"><i class="bi bi-telephone me-1"></i> @(item.IdMascotaNavigation?.IdDuenoNavigation?.Telefono ?? "Sin tel.")</small>
+                            </td>
+                            <td>
+                                <span class="text-dark">@item.FechaApertura.ToString("dd/MM/yyyy")</span>
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(item.Alergias) || item.Alergias.Equals("Ninguna", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="text-muted small">Ninguna</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">@item.Alergias</span>
+                                }
+                            </td>
+                            <td>
+                                <small class="text-muted text-truncate d-inline-block" style="max-width: 200px;" title="@item.Antecedentes">
+                                    @(string.IsNullOrEmpty(item.Antecedentes) ? "Sin antecedentes" : item.Antecedentes)
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@item.IdExpediente" title="Ver Expediente Completo">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdExpediente" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdExpediente" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-folder-x text-muted fs-1 mb-2"></i>
+                <p class="text-muted">No se encontraron expedientes clínicos registrados.</p>
+                <a class="btn btn-outline-primary btn-sm" asp-action="Create">Abrir el primer expediente</a>
+            </div>
+        }
+    </div>
+</div>
