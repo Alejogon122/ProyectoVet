@@ -1,0 +1,54 @@
+body { align-items: center; justify-content: center; padding-block: 32px; }
+.login {
+  width: min(1120px, calc(100% - 32px));
+  min-height: 660px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #fff;
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 16px 56px rgba(24, 51, 47, 0.07);
+  overflow: hidden;
+}
+.login-aside {
+  padding: 48px 40px;
+  background: var(--color-primary-hover);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+.brand { display: inline-flex; align-items: center; gap: 12px; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.04em; }
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+.login-aside h2 { color: #fff; font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 700; line-height: 1.2; }
+.login-aside p { margin-top: 20px; font-size: 1rem; line-height: 1.8; color: #d1e8df; }
+.login-aside small { color: #d1e8df; font-size: 0.8rem; }
+.login-main { display: flex; align-items: center; justify-content: center; padding: 48px 40px; min-width: 0; }
+.login-box { width: min(100%, 400px); }
+.login-box .brand { color: var(--color-dark); font-size: 1rem; margin-bottom: 24px; }
+.login-box .brand-mark { background: #e8f3ef; color: var(--color-primary); border-color: var(--glass-border); }
+.login-box h1 { font-size: clamp(1.8rem, 2.3vw, 2.3rem); margin: 12px 0; font-weight: 800; }
+.login-box .btn-primary { min-height: 48px; }
+@media (max-width: 900px) {
+  .login { grid-template-columns: 1fr; min-height: auto; max-width: 560px; }
+  .login-aside { padding: 28px; gap: 24px; }
+  .login-aside h2 { font-size: 1.7rem; }
+  .login-aside p { margin-bottom: 0; }
+  .login-main { padding: 32px 28px; }
+}
+@media (max-width: 400px) {
+  body { padding-block: 16px; }
+  .login-aside, .login-main { padding: 24px 20px; }
+}

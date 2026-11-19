@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -57,18 +54,7 @@ namespace ProyectoVet.Controllers
                 ModelState.AddModelError(string.Empty, "No hay dueños activos registrados. Debe registrar y activar al menos un dueño antes de crear una mascota.");
             }
 
-            if (!string.IsNullOrWhiteSpace(mascota.NumeroMicrochip))
-            {
-                var existeMicrochip = await _context.Mascotas.AnyAsync(m =>
-                    m.IdMascota != mascota.IdMascota &&
-                    m.NumeroMicrochip != null &&
-                    m.NumeroMicrochip == mascota.NumeroMicrochip);
-
-                if (existeMicrochip)
-                {
-                    ModelState.AddModelError(nameof(Mascota.NumeroMicrochip), "Ya existe una mascota registrada con este número de microchip.");
-                }
-            }
+            await ValidarMicrochipUnicoAsync(mascota);
 
             if (ModelState.IsValid)
             {
@@ -107,18 +93,7 @@ namespace ProyectoVet.Controllers
                 ModelState.AddModelError(string.Empty, "No hay dueños activos registrados. Debe registrar y activar al menos un dueño antes de actualizar una mascota.");
             }
 
-            if (!string.IsNullOrWhiteSpace(mascota.NumeroMicrochip))
-            {
-                var existeMicrochip = await _context.Mascotas.AnyAsync(m =>
-                    m.IdMascota != mascota.IdMascota &&
-                    m.NumeroMicrochip != null &&
-                    m.NumeroMicrochip == mascota.NumeroMicrochip);
-
-                if (existeMicrochip)
-                {
-                    ModelState.AddModelError(nameof(Mascota.NumeroMicrochip), "Ya existe una mascota registrada con este número de microchip.");
-                }
-            }
+            await ValidarMicrochipUnicoAsync(mascota);
 
             if (ModelState.IsValid)
             {
@@ -131,12 +106,27 @@ namespace ProyectoVet.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!MascotaExists(mascota.IdMascota)) return NotFound();
-                    else throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             CargarDuenosDropDown(mascota.IdDueno);
             return View(mascota);
+        }
+
+        private async Task ValidarMicrochipUnicoAsync(Mascota mascota)
+        {
+            if (string.IsNullOrWhiteSpace(mascota.NumeroMicrochip)) return;
+
+            var existeMicrochip = await _context.Mascotas.AnyAsync(m =>
+                m.IdMascota != mascota.IdMascota &&
+                m.NumeroMicrochip != null &&
+                m.NumeroMicrochip == mascota.NumeroMicrochip);
+
+            if (existeMicrochip)
+            {
+                ModelState.AddModelError(nameof(Mascota.NumeroMicrochip), "Ya existe una mascota registrada con este número de microchip.");
+            }
         }
 
         private void NormalizarYValidarMascota(Mascota mascota)
@@ -195,7 +185,6 @@ namespace ProyectoVet.Controllers
             }
 
             ModelState.Remove(nameof(Mascota.IdDuenoNavigation));
-            ModelState.Remove("IdDuenoNavigation");
         }
 
         private void CargarDuenosDropDown(object? selectedId = null)
@@ -211,8 +200,9 @@ namespace ProyectoVet.Controllers
                 .ToList();
 
             ViewBag.IdDueno = new SelectList(duenos, "IdDueno", "NombreCompleto", selectedId);
-            ViewBag.NoHayDuenosActivos = !duenos.Any();
-            if (!duenos.Any())
+            var noHayDuenosActivos = duenos.Count == 0;
+            ViewBag.NoHayDuenosActivos = noHayDuenosActivos;
+            if (noHayDuenosActivos)
             {
                 ViewBag.MensajeDuenosActivos = "No hay dueños activos registrados. Debe registrar y activar un dueño antes de crear una mascota.";
             }

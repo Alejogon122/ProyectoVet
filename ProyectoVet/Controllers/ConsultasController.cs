@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -20,12 +18,7 @@ namespace ProyectoVet.Controllers
         // GET: Consultas
         public async Task<IActionResult> Index()
         {
-            var consultas = _context.Consultas
-                .Include(c => c.IdCitaNavigation)
-                .Include(c => c.IdExpedienteNavigation)
-                    .ThenInclude(e => e.IdMascotaNavigation)
-                        .ThenInclude(m => m.IdDuenoNavigation!)
-                .Include(c => c.IdVeterinarioNavigation!)
+            var consultas = ConsultarConsultasConRelaciones()
                 .OrderByDescending(c => c.FechaConsulta);
             return View(await consultas.ToListAsync());
         }
@@ -35,12 +28,7 @@ namespace ProyectoVet.Controllers
         {
             if (id == null) return NotFound();
 
-            var consulta = await _context.Consultas
-                .Include(c => c.IdCitaNavigation)
-                .Include(c => c.IdExpedienteNavigation)
-                    .ThenInclude(e => e.IdMascotaNavigation)
-                        .ThenInclude(m => m.IdDuenoNavigation!)
-                .Include(c => c.IdVeterinarioNavigation!)
+            var consulta = await ConsultarConsultasConRelaciones()
                 .FirstOrDefaultAsync(m => m.IdConsulta == id);
             if (consulta == null) return NotFound();
 
@@ -99,12 +87,22 @@ namespace ProyectoVet.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!ConsultaExists(consulta.IdConsulta)) return NotFound();
-                    else throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             CargarConsultasDropDowns(consulta.IdExpediente, consulta.IdCita, consulta.IdVeterinario);
             return View(consulta);
+        }
+
+        private IQueryable<Consulta> ConsultarConsultasConRelaciones()
+        {
+            return _context.Consultas
+                .Include(c => c.IdCitaNavigation)
+                .Include(c => c.IdExpedienteNavigation)
+                    .ThenInclude(e => e.IdMascotaNavigation)
+                        .ThenInclude(m => m.IdDuenoNavigation!)
+                .Include(c => c.IdVeterinarioNavigation!);
         }
 
         private void CargarConsultasDropDowns(object? expedienteId = null, object? citaId = null, object? veterinarioId = null)

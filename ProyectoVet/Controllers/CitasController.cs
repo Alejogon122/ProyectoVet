@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -21,11 +18,7 @@ namespace ProyectoVet.Controllers
         // GET: Citas
         public async Task<IActionResult> Index()
         {
-            var citas = _context.Citas
-                .Include(c => c.IdMascotaNavigation!)
-                    .ThenInclude(m => m.IdDuenoNavigation)
-                .Include(c => c.IdEmpleadoNavigation)
-                .Include(c => c.CreadaPorEmpleado)
+            var citas = ConsultarCitasConRelaciones()
                 .OrderByDescending(c => c.FechaHoraInicio);
             return View(await citas.ToListAsync());
         }
@@ -35,11 +28,7 @@ namespace ProyectoVet.Controllers
         {
             if (id == null) return NotFound();
 
-            var cita = await _context.Citas
-                .Include(c => c.IdMascotaNavigation!)
-                    .ThenInclude(m => m.IdDuenoNavigation)
-                .Include(c => c.IdEmpleadoNavigation)
-                .Include(c => c.CreadaPorEmpleado)
+            var cita = await ConsultarCitasConRelaciones()
                 .FirstOrDefaultAsync(m => m.IdCita == id);
             if (cita == null) return NotFound();
 
@@ -117,13 +106,22 @@ namespace ProyectoVet.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!CitaExists(cita.IdCita)) return NotFound();
-                    else throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
 
             CargarCitasDropDowns(cita.IdMascota, cita.IdEmpleado, cita.CreadaPorEmpleadoId);
             return View(cita);
+        }
+
+        private IQueryable<Cita> ConsultarCitasConRelaciones()
+        {
+            return _context.Citas
+                .Include(c => c.IdMascotaNavigation!)
+                    .ThenInclude(m => m.IdDuenoNavigation)
+                .Include(c => c.IdEmpleadoNavigation)
+                .Include(c => c.CreadaPorEmpleado);
         }
 
         private async Task NormalizarYValidarCitaAsync(Cita cita)
@@ -240,10 +238,6 @@ namespace ProyectoVet.Controllers
             ModelState.Remove(nameof(Cita.IdMascotaNavigation));
             ModelState.Remove(nameof(Cita.CreadaPorEmpleado));
             ModelState.Remove(nameof(Cita.Consulta));
-            ModelState.Remove("IdEmpleadoNavigation");
-            ModelState.Remove("IdMascotaNavigation");
-            ModelState.Remove("CreadaPorEmpleado");
-            ModelState.Remove("Consulta");
         }
 
         private void CargarCitasDropDowns(object? mascotaId = null, object? veterinarioId = null, object? creadorId = null)
@@ -259,16 +253,6 @@ namespace ProyectoVet.Controllers
                 })
                 .ToList();
 
-            var veterinarios = _context.Empleados
-                .Where(e => e.Activo)
-                .OrderBy(e => e.Nombre)
-                .Select(e => new
-                {
-                    e.IdEmpleado,
-                    NombreCompleto = "Dr(a). " + e.Nombre + " " + e.Apellidos
-                })
-                .ToList();
-
             var empleados = _context.Empleados
                 .Where(e => e.Activo)
                 .OrderBy(e => e.Nombre)
@@ -279,12 +263,20 @@ namespace ProyectoVet.Controllers
                 })
                 .ToList();
 
+            var veterinarios = empleados
+                .Select(e => new
+                {
+                    e.IdEmpleado,
+                    NombreCompleto = "Dr(a). " + e.NombreCompleto
+                })
+                .ToList();
+
             ViewBag.IdMascota = new SelectList(mascotas, "IdMascota", "Descripcion", mascotaId);
             ViewBag.IdEmpleado = new SelectList(veterinarios, "IdEmpleado", "NombreCompleto", veterinarioId);
             ViewBag.CreadaPorEmpleadoId = new SelectList(empleados, "IdEmpleado", "NombreCompleto", creadorId);
 
-            ViewBag.NoHayMascotasActivas = !mascotas.Any();
-            ViewBag.NoHayVeterinariosActivos = !veterinarios.Any();
+            ViewBag.NoHayMascotasActivas = mascotas.Count == 0;
+            ViewBag.NoHayVeterinariosActivos = veterinarios.Count == 0;
         }
 
         // GET: Citas/Delete/5

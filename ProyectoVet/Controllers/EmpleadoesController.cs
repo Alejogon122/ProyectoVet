@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -118,7 +116,7 @@ namespace ProyectoVet.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!EmpleadoExists(empleado.IdEmpleado)) return NotFound();
-                    else throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }

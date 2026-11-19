@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ProyectoVet.Models;
 
@@ -29,11 +30,16 @@ public partial class Consulta
 
     public string? Observaciones { get; set; }
 
+    // El formulario envía las claves foráneas; EF carga las relaciones por separado.
+    [ValidateNever]
     public virtual Cita? IdCitaNavigation { get; set; }
 
+    [ValidateNever]
     public virtual ExpedientesClinico IdExpedienteNavigation { get; set; } = null!;
 
+    [ValidateNever]
     public virtual Empleado IdVeterinarioNavigation { get; set; } = null!;
 
+    [ValidateNever]
     public virtual ICollection<Tratamiento> Tratamientos { get; set; } = new List<Tratamiento>();
 }

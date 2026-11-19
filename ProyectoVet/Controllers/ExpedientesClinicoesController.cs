@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -106,7 +103,7 @@ namespace ProyectoVet.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!ExpedientesClinicoExists(expedientesClinico.IdExpediente)) return NotFound();
-                    else throw;
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -160,8 +157,6 @@ namespace ProyectoVet.Controllers
             // Remover referencias de navegación para evitar falsos positivos
             ModelState.Remove(nameof(ExpedientesClinico.IdMascotaNavigation));
             ModelState.Remove(nameof(ExpedientesClinico.Consulta));
-            ModelState.Remove("IdMascotaNavigation");
-            ModelState.Remove("Consulta");
         }
 
         private void CargarMascotasDropDown(object? selectedId = null, int? mascotaActualId = null)
@@ -190,7 +185,7 @@ namespace ProyectoVet.Controllers
                 .ToList();
 
             ViewBag.IdMascota = new SelectList(mascotas, "IdMascota", "Descripcion", selectedId);
-            ViewBag.NoHayMascotasDisponibles = !mascotas.Any();
+            ViewBag.NoHayMascotasDisponibles = mascotas.Count == 0;
         }
 
         // GET: ExpedientesClinicoes/Delete/5
