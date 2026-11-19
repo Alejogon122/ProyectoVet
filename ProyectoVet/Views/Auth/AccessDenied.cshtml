@@ -1,0 +1,14 @@
+@{ ViewData["Title"] = "Acceso restringido"; }
+<section class="glass-card p-4 mx-auto" style="max-width: 42rem;" aria-labelledby="denied-title">
+    <i class="bi bi-shield-lock text-primary fs-2" aria-hidden="true"></i>
+    <h1 id="denied-title" class="h3 mt-3">Acceso restringido</h1>
+    <p>Tu perfil no tiene permiso para realizar esta acción. Si necesitas otro acceso, comunícate con el administrador.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Volver a mi panel</a>
+    }
+    else
+    {
+        <a asp-controller="Auth" asp-action="Login" class="btn btn-primary">Iniciar sesión</a>
+    }
+</section>

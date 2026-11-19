@@ -134,7 +134,7 @@ namespace ProyectoVet.Controllers
                 .ToList();
 
             var veterinarios = _context.Empleados
-                .Where(e => e.Activo)
+                .Where(e => e.Activo && e.IdRolNavigation.NombreRol == "Veterinario")
                 .OrderBy(e => e.Nombre)
                 .Select(e => new
                 {

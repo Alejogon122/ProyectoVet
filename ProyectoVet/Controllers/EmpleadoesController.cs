@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProyectoVet.Data;
 using ProyectoVet.Models;
+using ProyectoVet.Security;
 
 namespace ProyectoVet.Controllers
 {
     public class EmpleadoesController : Controller
     {
-        private static readonly string[] RolesPredeterminados = ["Administrador", "Veterinario", "Recepcionista"];
+        private static readonly string[] RolesPredeterminados = RoleAccess.Roles;
         private readonly VeterinariaContext _context;
 
         public EmpleadoesController(VeterinariaContext context)
@@ -53,8 +54,8 @@ namespace ProyectoVet.Controllers
         public async Task<IActionResult> Create()
         {
             await EnsureRolesExistAsync();
-            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol");
-            return View();
+            ViewData["IdRol"] = new SelectList(await _context.Roles.Where(r => RoleAccess.Roles.Contains(r.NombreRol)).OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol");
+            return View(new Empleado { Activo = true });
         }
 
         // POST: Empleadoes/Create
@@ -64,7 +65,7 @@ namespace ProyectoVet.Controllers
         {
             await EnsureRolesExistAsync();
 
-            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol))
+            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol && RoleAccess.Roles.Contains(r.NombreRol)))
             {
                 ModelState.AddModelError(nameof(Empleado.IdRol), "Debe seleccionar un rol válido.");
             }
@@ -75,7 +76,7 @@ namespace ProyectoVet.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
+            ViewData["IdRol"] = new SelectList(await _context.Roles.Where(r => RoleAccess.Roles.Contains(r.NombreRol)).OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 
@@ -88,7 +89,7 @@ namespace ProyectoVet.Controllers
             if (empleado == null) return NotFound();
 
             await EnsureRolesExistAsync();
-            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
+            ViewData["IdRol"] = new SelectList(await _context.Roles.Where(r => RoleAccess.Roles.Contains(r.NombreRol)).OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 
@@ -99,9 +100,17 @@ namespace ProyectoVet.Controllers
         {
             if (id != empleado.IdEmpleado) return NotFound();
 
+            if (string.IsNullOrWhiteSpace(empleado.Contrasena))
+            {
+                var original = await _context.Empleados.AsNoTracking().FirstOrDefaultAsync(e => e.IdEmpleado == id);
+                if (original == null) return NotFound();
+                empleado.Contrasena = original.Contrasena;
+                ModelState.Remove(nameof(Empleado.Contrasena));
+            }
+
             await EnsureRolesExistAsync();
 
-            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol))
+            if (!await _context.Roles.AnyAsync(r => r.IdRol == empleado.IdRol && RoleAccess.Roles.Contains(r.NombreRol)))
             {
                 ModelState.AddModelError(nameof(Empleado.IdRol), "Debe seleccionar un rol válido.");
             }
@@ -120,7 +129,7 @@ namespace ProyectoVet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdRol"] = new SelectList(await _context.Roles.OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
+            ViewData["IdRol"] = new SelectList(await _context.Roles.Where(r => RoleAccess.Roles.Contains(r.NombreRol)).OrderBy(r => r.NombreRol).ToListAsync(), "IdRol", "NombreRol", empleado.IdRol);
             return View(empleado);
         }
 

@@ -1,0 +1,13 @@
+@model ProyectoVet.Models.ViewModels.PerfilViewModel
+@{ ViewData["Title"] = "Mi perfil"; }
+<section class="glass-card p-4 mx-auto" style="max-width: 44rem;" aria-labelledby="profile-title">
+    <p class="text-primary fw-semibold mb-2">@Model.Rol</p>
+    <h1 id="profile-title" class="h3">Mi perfil</h1>
+    <dl class="row mt-4 mb-0">
+        <dt class="col-sm-4">Nombre</dt><dd class="col-sm-8 text-break">@Model.Nombre</dd>
+        <dt class="col-sm-4">Correo electrónico</dt><dd class="col-sm-8 text-break">@Model.Correo</dd>
+        <dt class="col-sm-4">Teléfono</dt><dd class="col-sm-8">@Model.Telefono</dd>
+    </dl>
+    <p class="text-muted small mt-3">Para actualizar tus datos o cambiar tu rol, contacta al administrador.</p>
+    <a asp-action="Index" class="btn btn-outline-primary">Volver a mi panel</a>
+</section>

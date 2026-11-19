@@ -27,103 +27,25 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
-                        @if (Context.Session.GetString("EmpleadoNombre") != null)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                    <i class="bi bi-house-door me-1"></i> Inicio
-                                </a>
-                            </li>
-
-                            <!-- Módulo Pacientes -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-heart me-1"></i> Pacientes
-                                </a>
-                                <ul class="dropdown-menu glass-dropdown">
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Dueno" asp-action="Index">
-                                            <i class="bi bi-people me-2 text-primary"></i> Dueños
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Mascotas" asp-action="Index">
-                                            <i class="bi bi-feather me-2 text-primary"></i> Mascotas
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider border-secondary border-opacity-10"></li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="ExpedientesClinicoes" asp-action="Index">
-                                            <i class="bi bi-folder2-open me-2 text-primary"></i> Expedientes Clínicos
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <!-- Módulo Atención Médica -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-hospital me-1"></i> Atención Médica
-                                </a>
-                                <ul class="dropdown-menu glass-dropdown">
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Citas" asp-action="Index">
-                                            <i class="bi bi-calendar-event me-2 text-success"></i> Agenda de Citas
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Consultas" asp-action="Index">
-                                            <i class="bi bi-clipboard2-pulse me-2 text-success"></i> Consultas Médicas
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <!-- Módulo Administración y Catálogos -->
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-gear me-1"></i> Administración
-                                </a>
-                                <ul class="dropdown-menu glass-dropdown">
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Medicamentos" asp-action="Index">
-                                            <i class="bi bi-capsule me-2 text-info"></i> Medicamentos
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Especialidades" asp-action="Index">
-                                            <i class="bi bi-award me-2 text-info"></i> Especialidades
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider border-secondary border-opacity-10"></li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Empleadoes" asp-action="Index">
-                                            <i class="bi bi-person-badge me-2 text-secondary"></i> Empleados
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Permisoes" asp-action="Index">
-                                            <i class="bi bi-shield-lock me-2 text-secondary"></i> Permisos
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
+                        <partial name="_RoleNavigation" />
                     </ul>
 
-                    @if (Context.Session.GetString("EmpleadoNombre") != null)
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
                         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                             <li class="nav-item me-2 text-dark fw-semibold">
                                 <span class="d-inline-flex align-items-center gap-2">
                                     <i class="bi bi-person-circle text-primary"></i>
-                                    @Context.Session.GetString("EmpleadoNombre")
+                                    <a asp-controller="Home" asp-action="Perfil" class="text-decoration-none text-dark">@User.Identity?.Name</a>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">@RoleAccess.CurrentRole(User)</span>
                                 </span>
                             </li>
                             <li class="nav-item">
-                                <a class="btn btn-outline-secondary btn-sm" asp-controller="Auth" asp-action="Logout">
+                                <form asp-controller="Auth" asp-action="Logout" method="post">
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
-                                </a>
+                                </button>
+                                </form>
                             </li>
                         </ul>
                     }

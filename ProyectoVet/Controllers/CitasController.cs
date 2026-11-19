@@ -259,11 +259,13 @@ namespace ProyectoVet.Controllers
                 .Select(e => new
                 {
                     e.IdEmpleado,
-                    NombreCompleto = e.Nombre + " " + e.Apellidos
+                    NombreCompleto = e.Nombre + " " + e.Apellidos,
+                    Rol = e.IdRolNavigation.NombreRol
                 })
                 .ToList();
 
             var veterinarios = empleados
+                .Where(e => e.Rol == "Veterinario")
                 .Select(e => new
                 {
                     e.IdEmpleado,

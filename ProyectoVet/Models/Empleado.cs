@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ProyectoVet.Models;
 
@@ -33,6 +34,7 @@ public partial class Empleado
 
     public virtual EmpleadosEspecialidade? EmpleadosEspecialidade { get; set; }
 
+    [ValidateNever]
     public virtual Role IdRolNavigation { get; set; } = null!;
 
     public virtual ICollection<Vacunacione> Vacunaciones { get; set; } = new List<Vacunacione>();

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProyectoVet.Data;
+using ProyectoVet.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,7 @@ builder.Services.AddDbContext<VeterinariaContext>(options =>
     ));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddRoleSecurity();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -26,7 +27,7 @@ using (var scope = app.Services.CreateScope())
 
     context.Database.EnsureCreated();
 
-    string[] rolesPredeterminados = ["Administrador", "Veterinario", "Recepcionista"];
+    string[] rolesPredeterminados = RoleAccess.Roles;
     foreach (var nombreRol in rolesPredeterminados)
     {
         if (!context.Roles.Any(r => r.NombreRol == nombreRol))
@@ -34,6 +35,8 @@ using (var scope = app.Services.CreateScope())
             context.Roles.Add(new ProyectoVet.Models.Role { NombreRol = nombreRol });
         }
     }
+
+    context.SaveChanges();
 
     var adminRole = context.Roles.FirstOrDefault(r => r.NombreRol == "Administrador");
     if (adminRole != null)
@@ -87,6 +90,7 @@ app.UseSession();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

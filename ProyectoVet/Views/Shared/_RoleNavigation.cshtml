@@ -1,0 +1,34 @@
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-1" aria-hidden="true"></i>Mi panel</a></li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Pacientes</a>
+        <ul class="dropdown-menu glass-dropdown">
+            <li><a class="dropdown-item" asp-controller="Dueno" asp-action="Index">Dueños</a></li>
+            <li><a class="dropdown-item" asp-controller="Mascotas" asp-action="Index">Mascotas</a></li>
+        </ul>
+    </li>
+    <li class="nav-item"><a class="nav-link" asp-controller="Citas" asp-action="Index">Agenda</a></li>
+    @if (RoleAccess.CanAccess(User, "Consultas", "Index"))
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Atención médica</a>
+            <ul class="dropdown-menu glass-dropdown">
+                <li><a class="dropdown-item" asp-controller="Consultas" asp-action="Index">Consultas médicas</a></li>
+                <li><a class="dropdown-item" asp-controller="ExpedientesClinicoes" asp-action="Index">Expedientes clínicos</a></li>
+                <li><a class="dropdown-item" asp-controller="Medicamentos" asp-action="Index">Medicamentos</a></li>
+            </ul>
+        </li>
+    }
+    @if (RoleAccess.CurrentRole(User) == RoleAccess.Administrador)
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Administración</a>
+            <ul class="dropdown-menu glass-dropdown">
+                <li><a class="dropdown-item" asp-controller="Empleadoes" asp-action="Index">Empleados y perfiles</a></li>
+                <li><a class="dropdown-item" asp-controller="Especialidades" asp-action="Index">Especialidades</a></li>
+                <li><a class="dropdown-item" asp-controller="Permisoes" asp-action="Index">Permisos</a></li>
+            </ul>
+        </li>
+    }
+}

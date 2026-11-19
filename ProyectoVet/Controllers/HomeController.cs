@@ -4,6 +4,9 @@ using ProyectoVet.Data;
 using ProyectoVet.Models;
 using ProyectoVet.Models.ViewModels;
 using System.Diagnostics;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using ProyectoVet.Security;
 
 namespace ProyectoVet.Controllers
 {
@@ -20,21 +23,28 @@ namespace ProyectoVet.Controllers
 
         public async Task<IActionResult> Index()
         {
-            if (HttpContext != null && HttpContext.Session != null && string.IsNullOrWhiteSpace(HttpContext.Session.GetString("EmpleadoNombre")))
+            if (HttpContext != null && User.Identity?.IsAuthenticated != true)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
             var hoy = DateTime.Today;
             var finHoy = hoy.AddDays(1).AddTicks(-1);
+            var role = HttpContext == null ? "" : RoleAccess.CurrentRole(User);
+            var citas = _context.Citas.AsNoTracking().AsQueryable();
+            if (role == RoleAccess.Veterinario)
+            {
+                int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var empleadoId);
+                citas = citas.Where(c => c.IdEmpleado == empleadoId);
+            }
 
             var vm = new DashboardViewModel
             {
                 TotalMascotas = await _context.Mascotas.CountAsync(m => m.Activa),
                 TotalDuenos = await _context.Duenos.CountAsync(d => d.Activo),
-                TotalCitasHoy = await _context.Citas.CountAsync(c => c.FechaHoraInicio >= hoy && c.FechaHoraInicio <= finHoy && c.EstadoCita != "Cancelada"),
-                TotalConsultas = await _context.Consultas.CountAsync(),
-                ProximasCitas = await _context.Citas
+                TotalCitasHoy = await citas.CountAsync(c => c.FechaHoraInicio >= hoy && c.FechaHoraInicio <= finHoy && c.EstadoCita != "Cancelada"),
+                TotalConsultas = role == RoleAccess.Secretaria ? 0 : await _context.Consultas.CountAsync(),
+                ProximasCitas = await citas
                     .Include(c => c.IdMascotaNavigation)
                         .ThenInclude(m => m.IdDuenoNavigation!)
                     .Include(c => c.IdEmpleadoNavigation!)
@@ -44,7 +54,28 @@ namespace ProyectoVet.Controllers
                     .ToListAsync()
             };
 
-            return View(vm);
+            return role switch
+            {
+                RoleAccess.Veterinario => View("Veterinario", vm),
+                RoleAccess.Secretaria => View("Secretaria", vm),
+                _ => View(vm)
+            };
+        }
+
+        public async Task<IActionResult> Perfil()
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) return Challenge();
+            var perfil = await _context.Empleados.AsNoTracking().Where(e => e.IdEmpleado == id && e.Activo)
+                .Select(e => new PerfilViewModel
+                {
+                    Nombre = e.Nombre + " " + e.Apellidos,
+                    Correo = e.CorreoElectronico,
+                    Telefono = e.Telefono,
+                    Rol = e.IdRolNavigation.NombreRol
+                }).SingleOrDefaultAsync();
+            if (perfil == null) return NotFound();
+            perfil.Rol = RoleAccess.Normalize(perfil.Rol);
+            return View(perfil);
         }
 
         public IActionResult Privacy()
@@ -53,6 +84,7 @@ namespace ProyectoVet.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [AllowAnonymous]
         public IActionResult Error()
         {
             var requestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier ?? "unknown";
