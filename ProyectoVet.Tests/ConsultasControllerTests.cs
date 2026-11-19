@@ -12,6 +12,7 @@ using Xunit;
 
 namespace ProyectoVet.Tests;
 
+[Trait("Category", "Unit")]
 public class ConsultasControllerTests
 {
     private sealed class TestTempDataProvider : ITempDataProvider

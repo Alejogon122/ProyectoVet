@@ -13,6 +13,7 @@ using Xunit;
 
 namespace ProyectoVet.Tests;
 
+[Trait("Category", "Unit")]
 public class CitasControllerTests
 {
     private DbContextOptions<VeterinariaContext> CreateInMemoryOptions()

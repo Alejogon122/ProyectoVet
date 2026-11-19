@@ -8,9 +8,12 @@ using ProyectoVet.Data;
 using ProyectoVet.Models;
 using ProyectoVet.Models.ViewModels;
 using Xunit;
+using ProyectoVet.Security;
+using ProyectoVet.Tests.Support;
 
 namespace ProyectoVet.Tests;
 
+[Trait("Category", "Unit")]
 public class HomeControllerTests
 {
     [Fact]
@@ -177,7 +180,9 @@ public class HomeControllerTests
 
         await context.SaveChangesAsync();
 
-        var controller = new HomeController(NullLogger<HomeController>.Instance, context);
+        using var homeTest = new ControllerTestScope<HomeController>(
+            new HomeController(NullLogger<HomeController>.Instance, context), RoleAccess.Administrador);
+        var controller = homeTest.Controller;
         var result = await controller.Index();
 
         var viewResult = Assert.IsType<ViewResult>(result);
@@ -206,7 +211,9 @@ public class HomeControllerTests
         var medicamento = context.Medicamentos.First();
         var permiso = context.Permisos.First();
 
-        var homeController = new HomeController(NullLogger<HomeController>.Instance, context);
+        using var homeTest = new ControllerTestScope<HomeController>(
+            new HomeController(NullLogger<HomeController>.Instance, context), RoleAccess.Administrador);
+        var homeController = homeTest.Controller;
         Assert.IsType<ViewResult>(await homeController.Index());
         Assert.IsType<ViewResult>(homeController.Privacy());
 

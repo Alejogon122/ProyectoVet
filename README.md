@@ -36,4 +36,23 @@ dotnet test ProyectoVet.Tests/ProyectoVet.Tests.csproj --configuration Release
 
 Las pruebas HTTP arrancan Kestrel con una base aislada en memoria y cuentas sintéticas. Verifican login, paneles, navegación, perfil propio, bloqueo de URL y POST, creación de cuentas por el administrador, cierre de sesión, desactivación y cambios de rol.
 
+La suite contiene 100 casos: 78 unitarios (`Category=Unit`) y 22 de integración HTTP (`Category=Integration`). Las pruebas unitarias usan una base aislada en memoria cuando necesitan persistencia; no requieren SQL Server ni abren un servidor HTTP.
+
+```powershell
+# Solo pruebas unitarias
+dotnet test ProyectoVet.Tests/ProyectoVet.Tests.csproj --configuration Release --filter "Category=Unit"
+
+# Solo integración HTTP
+dotnet test ProyectoVet.Tests/ProyectoVet.Tests.csproj --configuration Release --filter "Category=Integration"
+```
+
+La cobertura de los perfiles se distribuye en:
+
+- `AuthControllerTests`: credenciales válidas e inválidas, cuentas inactivas, roles desconocidos, identidad autenticada, cierre de sesión y respuesta 403.
+- `HomeRoleTests`: selección del panel, contadores por rol, agenda propia ordenada y limitada, estados vacíos, acceso anónimo y perfil del empleado autenticado.
+- `RoleAccessTests`: límites de cada rol, compatibilidad con Recepcionista, rechazo de identidades no autenticadas y autorización sobre la acción resuelta por MVC.
+- `RoleAccessHttpTests`: verificación conjunta de cookies, antiforgery, rutas protegidas y vistas Razor.
+
+Las pruebas directas de controladores no ejecutan los filtros de autorización ni antiforgery; esa protección se comprueba con las pruebas HTTP. El proveedor en memoria tampoco comprueba índices, restricciones ni rendimiento de SQL Server.
+
 El informe de `performance/INFORME.md` corresponde a las mediciones anteriores a la protección de rutas. El script de rendimiento anónimo detectará ahora la redirección al login y se detendrá; para nuevas mediciones se necesita una sesión autenticada con los permisos correspondientes.

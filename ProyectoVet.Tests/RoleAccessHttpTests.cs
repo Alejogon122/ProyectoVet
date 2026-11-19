@@ -17,6 +17,7 @@ using Xunit;
 namespace ProyectoVet.Tests;
 
 // HTTP real: cookies, antiforgery, autorización, vistas Razor y persistencia aislada.
+[Trait("Category", "Integration")]
 public class RoleAccessHttpTests : IAsyncLifetime
 {
     private WebApplication _app = null!;
